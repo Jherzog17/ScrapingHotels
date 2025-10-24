@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
+from bs4 import BeautifulSoup
 import time
 
 
@@ -21,7 +21,7 @@ def iniciarNavegador(url):
     driver.get(url)
     return driver
 
-def cerrarLogin():
+def cerrarLogin(driver):
     '''
     Función que cierra el popup del login
     '''
@@ -32,7 +32,7 @@ def cerrarLogin():
     except Exception as e:
         pass #Hay veces que no salta el login
 
-def aceptarCookies():
+def aceptarCookies(driver):
     '''
     Función que acepta las cookies de Booking
     '''
@@ -44,7 +44,7 @@ def aceptarCookies():
         print(f"Error al aceptar cookies: {e}")
 
         
-def seleccionarLugar(lugar):
+def seleccionarLugar(driver, lugar):
     '''
     Función que escribe en el buscador de Maps un lugar
     '''
@@ -55,7 +55,7 @@ def seleccionarLugar(lugar):
     except Exception as e:
         print(f"Error al seleccionar lugar: {e}")
 
-def seleccionarFechas():
+def seleccionarFechas(driver):
     """
     Función que selecciona las fechas del 16 al 17 de enero
     """
@@ -85,7 +85,7 @@ def seleccionarFechas():
     except Exception as e:
         print(f"Error al seleccionar las fechas: {e}")
 
-def seleccionarViajeros():
+def seleccionarViajeros(driver):
     """
     Función que selecciona el número de viajeros
     """
@@ -106,7 +106,7 @@ def seleccionarViajeros():
     except Exception as e:
         print(f"Error al seleccionar viajeros {e}")
 
-def buscar():
+def buscar(driver):
     """
     Función que busca y presiona el botón de buscar
     """
@@ -115,36 +115,54 @@ def buscar():
         btn_buscar = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[@class='de576f5064 b46cd7aad7 ced67027e5 dda427e6b5 e4f9ca4b0c ca8e0b9533 cfd71fb584 a9d40b8d51']")))
         btn_buscar.click()
         print("Botón de buscar presionado con éxito")
+        return driver
     except Exception as e:
         print(f"Error al darle a buscar {e}")
-
-def seleccionarSoloHoteles():
-    """
-    Función que selecciona los alojamientos que sean hoteles, hostales o albergues
-    """
-    try:
-        input_hoteles = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='b7ef425131 e9f1adff2b ba5aaf262f bfb55afbed']")))
-        print(len(input_hoteles))
-        
-        print("Opoción de hoteles seleccionada con éxito")
-    except Exception as e:
-        print(f"Error al seleccionar la opción de hoteles {e}")
 
 
 #------------------------Fin scraping dinámico------------------------------------------------
 
-#Parametros ajustables
-url = "https://www.booking.com"
-lugar = "Ibiza"
+def sacarHtmlEstático(driver):
+    """
+    Función que saca el Html de la pagina estatica a scrapear
+    """
+    WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH, "//div"))) #Esperar a que cargue todo
+    WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH, "//html")))
+    html_estatico = driver.page_source
+    soup = BeautifulSoup(html_estatico, "html.parser")
+    return soup
 
-#Secuencia de ejecución
-driver = iniciarNavegador(url)
-cerrarLogin()
-aceptarCookies()
-seleccionarLugar(lugar)
-seleccionarFechas()
-seleccionarViajeros()
-buscar()
-seleccionarSoloHoteles()
-input("Hola mundo ")
-driver.quit()
+#------------------------Inicio scraping estático---------------------------------------------
+
+#Funcnion de ejemplo, crear aqui la o las funciones
+def sacarInfoEjemplo(soup):
+    """
+    Funcion que saca el nombre del primer hotel
+    """
+    try:
+        nomobe_hotel_prueba = soup.find(name="h3", attrs={"class":"a97d37cded"})
+        print(nomobe_hotel_prueba.text)
+    except Exception as e:
+        print(f"Fallo al conseguir la info de prueba {e}")
+
+#------------------------Fin scraping estático------------------------------------------------
+def ejecutar_script(url, lugar):
+    #Inicio scraping dinámico
+    driver = iniciarNavegador(url)
+    cerrarLogin(driver)
+    aceptarCookies(driver)
+    seleccionarLugar(driver, lugar)
+    seleccionarFechas(driver)
+    seleccionarViajeros(driver)
+    buscar(driver)
+
+    #Sacar el html estatico
+    soup = sacarHtmlEstático(driver)
+
+    #Inicio del scraping estático
+    sacarInfoEjemplo(soup)
+
+    #Esto esta para poder ver la pagina mientras programamos, luego hay que quitar el input y poner el driver.quit justo despues de soup
+    input("Pulsa cualquier tecla para cerrar el navegador ")
+    driver.quit()
+
