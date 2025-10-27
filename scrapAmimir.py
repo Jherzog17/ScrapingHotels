@@ -1,0 +1,125 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+import time
+
+
+def iniciar_navegador(url):
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--start-maximized")
+
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.get(url)
+    return driver
+
+
+def aceptarCookies(driver):
+    '''
+    Función que acepta las cookies de Amimir
+    '''
+    try:
+        btn_accpt_cookies = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div[2]/div[2]/a")))
+        btn_accpt_cookies.click()
+        print("Cookies acceptadas con éxito")
+    except Exception as e:
+        print(f"Error al aceptar cookies: {e}")
+
+
+def seleccionarLugar(driver, lugar):
+    '''
+    Función que escribe en el buscador un lugar
+    '''
+    try:
+        # Esperar y enfocar el input
+        input_buscador = WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located(
+                (By.XPATH, "//div[@class='mainsearch-xs']//div[1]//div[2]/form/div//div[3]/div/span/input"))
+        )
+        input_buscador.send_keys(lugar)
+
+    except Exception as e:
+        print(f"Error al introducir destino: {e}")
+
+
+def seleccionarFechas(driver):
+    """
+    funcion para elegir las fechas de mi estancia
+    :param driver:
+    :return:
+    """
+    try:
+        # Presionar el boton de las fechas
+        btn_fecha = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "start-date-text")))
+        btn_fecha.click()
+        # pasar de mes
+        btn_flecha = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//i[@class='fa fa-lg fa-chevron-right']")))
+        btn_flecha.click()
+        btn_flecha.click()
+        # seleccionar fecha de inicio
+        btn_dia_inicio = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Enero 7, 2026']")))
+        btn_dia_inicio.click()
+        #seleccionar la fecha de fin
+        btn_dia_fin = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Enero 8, 2026']")))
+        btn_dia_fin.click()
+
+        # aceptar fechas
+        btn_acept = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//div[@class='vpt-btn vpt-btn-complementary']")))
+        btn_acept.click()
+    except Exception as e:
+        print(f"Error al seleccionar fechas {e}")
+
+
+def seleccionar_adulto(driver):
+    """
+    funcion para elegir que solo viaja un adulto
+    :param driver:
+    :return:
+    """
+    try:
+        #presionar botón desplegable de adultos y habitaciones
+        btn_adult = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
+            (By.XPATH, "//div[@id='dropdown-search-rooms']//div[@data-container='dropdown-button']/div")))
+        btn_adult.click()
+        #presionar botón de número de adultos
+        btn_ch = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//select[@id='book-hab-1-adults']")))
+        btn_ch.click()
+        #presionar botón según el número de adultos querido, en este caso 1
+        btn_uno = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//select[@id='book-hab-1-adults']/option[1]")))
+        btn_uno.click()
+    except Exception as e:
+        print(f"Error al seleccionar adultos {e}")
+
+
+def boton_buscar(driver):
+    """
+    funcion para empezar la búsqueda
+    :param driver:
+    :return:
+    """
+    try:
+        btn_buscar = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
+            (By.XPATH, "//div[@class='col-xs-12 col-lg-2 col-md-2  mainsearch-formblockl']/button")))
+        btn_buscar.click()
+    except Exception as e:
+        print(f"Error al pulsar buscar {e}")
+
+# ------------------------Fin scraping dinámico---------------------------------------------
+def ejecutar_script(url, lugar):
+    driver = iniciar_navegador(url)
+    aceptarCookies(driver)
+    seleccionarLugar(driver, lugar)
+    seleccionarFechas(driver)
+    seleccionar_adulto(driver)
+    boton_buscar(driver)
+
+    input("Toca alguna tecla")
+    driver.quit()
