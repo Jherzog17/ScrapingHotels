@@ -46,9 +46,7 @@ def seleccionarLugar(driver, lugar):
 
 def seleccionarFechas(driver):
     """
-    funcion para elegir las fechas de mi estancia
-    :param driver:
-    :return:
+    funcion para elegir las fechas, que serán del 7 al 8 de enero
     """
     try:
         # Presionar el boton de las fechas

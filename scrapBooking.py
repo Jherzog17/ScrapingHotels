@@ -57,28 +57,25 @@ def seleccionarLugar(driver, lugar):
 
 def seleccionarFechas(driver):
     """
-    Función que selecciona las fechas del 16 al 17 de enero
+    Función que selecciona las fechas del 7 al 8 de enero
     """
     try:
         #Presionar el boton de las fechas
         btn_fechas = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[@data-testid='searchbox-dates-container']")))
         btn_fechas.click()
 
-        #Presionar el boton de las fechas flexibles
-        btn_fechas_flexibles = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "flexible-searchboxdatepicker-tab-trigger")))
-        btn_fechas_flexibles.click()
+        #Presionar el boton de mes siguiente
+        btn_siguiente_mes = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Mes siquiente']")))
+        btn_siguiente_mes.click()
+        btn_siguiente_mes.click()
 
-        #Seleccionar boton de otro
-        input_otro = WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH, "//fieldset[@class='b99b6ef58f a10a015434']/div//div[4]")))
-        input_otro.click()
+        #Presionar seleccionar 7 de enero
+        btn_7_enero = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Mi 7 enero 2026']")))
+        btn_7_enero.click()
 
-        #Seleccionar enero
-        input_enero = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//fieldset[@class='fd8258f8a6']/div//div[1]//div[4]/label")))
-        input_enero.click()
-
-        #Presionar seleccionar fechas
-        btn_sel_fechas = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='d810db075c']//button")))
-        btn_sel_fechas.click()
+        #Presionar seleccionar 8 de enero
+        btn_8_enero = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Ju 8 enero 2026']")))
+        btn_8_enero.click()
 
 
         print("Fechas Seleccionadas con éxito")
