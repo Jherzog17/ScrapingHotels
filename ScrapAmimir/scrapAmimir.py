@@ -116,8 +116,8 @@ def sacarHtmlEstático(driver):
     """
     Función que saca el Html de la pagina estatica a scrapear
     """
-    WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH, "//body"))) #Esperar a que cargue todo
-    WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH, "//html")))
+    WebDriverWait(driver,20).until(EC.presence_of_all_elements_located((By.XPATH, "//html"))) #Esperar a que cargue todo
+    WebDriverWait(driver,40).until(EC.presence_of_all_elements_located((By.XPATH, '//div')))
     html_estatico = driver.page_source
     soup = BeautifulSoup(html_estatico, "html.parser")
     return soup
@@ -151,10 +151,10 @@ def sacarInfoHotel(soup):
         print(f"Fallo al conseguir la info de prueba {e}")
         return []
 
-def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos.csv'):
+def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos_amimir.csv'):
     cabeceras = ['Nombre', 'Puntuación', 'Precio', 'Estrellas', 'Llaves', 'Direccion']
     try:
-        with open(nombre_archivo, 'w', newline='', encoding='utf-8') as archivo_csv:
+        with open(f"../csv/{nombre_archivo}", 'w', newline='', encoding='utf-8') as archivo_csv:
             escritor = csv.writer(archivo_csv, delimiter=';')
             escritor.writerow(cabeceras)
             for linea_datos in datos_hoteles:
@@ -167,19 +167,19 @@ def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos.csv'):
         print(f" Error al escribir el archivo CSV: {e}")
 
 # ------------------------Fin scraping estático---------------------------------------------
-def ejecutar_script(url, lugar):
+def ejecutar_script(url, lugar, nom_csv):
+    #Parte dinámica
     driver = iniciar_navegador(url)
     aceptarCookies(driver)
     seleccionarLugar(driver, lugar)
     seleccionarFechas(driver)
     seleccionar_adulto(driver)
     boton_buscar(driver)
-    content = sacarHtmlEstático(driver)
-    result = sacarInfoHotel(content)
-    for h in result:
-       print(h)
+    
+    #Parte estática
     soup_final = sacarHtmlEstático(driver)
     lista_datos = sacarInfoHotel(soup_final)
-    guardar_en_csv(lista_datos, 'resultados_amimir_ibiza.csv')
-    input("Toca alguna tecla")
+    guardar_en_csv(lista_datos, nom_csv)
     driver.quit()
+    
+    
