@@ -9,9 +9,9 @@ nom_csv_ibiza = "resultados_amimir_ibiza.csv"
 ejecutar_script(url, lugar_ibiza, nom_csv_ibiza)
 
 
-#Scrap para Murcia
+#Scrap para Sevilla
 
-lugar_murcia ="Valencia"
-nom_csv_murcia = "resultados_amimir_murcia.csv"
+lugar_sevilla ="Sevilla"
+nom_csv_sevilla = "resultados_amimir_sevilla.csv"
 
-ejecutar_script(url, lugar_murcia, nom_csv_murcia)
+ejecutar_script(url, lugar_sevilla, nom_csv_sevilla)
