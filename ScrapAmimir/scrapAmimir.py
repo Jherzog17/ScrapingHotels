@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
+import csv
 import time
 
 
@@ -111,6 +112,61 @@ def boton_buscar(driver):
         print(f"Error al pulsar buscar {e}")
 
 # ------------------------Fin scraping dinámico---------------------------------------------
+def sacarHtmlEstático(driver):
+    """
+    Función que saca el Html de la pagina estatica a scrapear
+    """
+    WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH, "//body"))) #Esperar a que cargue todo
+    WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH, "//html")))
+    html_estatico = driver.page_source
+    soup = BeautifulSoup(html_estatico, "html.parser")
+    return soup
+# ------------------------Inicio scrapping estático---------------------------------------------
+def sacarInfoHotel(soup):
+    """
+    Funcion que saca el nombre del primer hotel
+    """
+    result = []
+    try:
+        hotel_data = soup.findAll(name="div", attrs={"class":"hotel-data-container"})
+        for hd in hotel_data:
+            h_nombre = hd.find(name="div", attrs={"class":"hotel-name"}).text
+            h_rate = hd.find(name="span", attrs={"class":"hotel-rate"}).text
+            h_price = hd.find(name="div", attrs={"class": "hotel-price"}).text
+            h_estrellas = len(hd.findAll(name="i", attrs={"class": "ci-star"}))
+            """if h_estrellas == 0:"""
+            h_llaves = len(hd.findAll(name="i", attrs={"class": "ci-key"}))
+            icono = hd.find(name="i", attrs={"class": "ci ci-map-icon ci-s-12"})
+            h_direccion = "N/A"  # Valor por defecto
+
+            if icono:
+                direccion_texto = icono.next_sibling
+                if direccion_texto:
+                    h_direccion = direccion_texto.strip().replace('"', '')
+
+            if len(h_nombre) > 0:
+                result.append(h_nombre + ";" + h_rate + ";" + h_price + ";" + str(h_estrellas) + " estrellas" + ";" + str(h_llaves) + " llaves" + ";" + h_direccion)
+        return result
+    except Exception as e:
+        print(f"Fallo al conseguir la info de prueba {e}")
+        return []
+
+def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos.csv'):
+    cabeceras = ['Nombre', 'Puntuación', 'Precio', 'Estrellas', 'Llaves', 'Direccion']
+    try:
+        with open(nombre_archivo, 'w', newline='', encoding='utf-8') as archivo_csv:
+            escritor = csv.writer(archivo_csv, delimiter=';')
+            escritor.writerow(cabeceras)
+            for linea_datos in datos_hoteles:
+                fila_lista = linea_datos.split(';')
+                escritor.writerow(fila_lista)
+
+        print(f"¡Datos guardados exitosamente en '{nombre_archivo}'!")
+
+    except IOError as e:
+        print(f" Error al escribir el archivo CSV: {e}")
+
+# ------------------------Fin scraping estático---------------------------------------------
 def ejecutar_script(url, lugar):
     driver = iniciar_navegador(url)
     aceptarCookies(driver)
@@ -118,6 +174,12 @@ def ejecutar_script(url, lugar):
     seleccionarFechas(driver)
     seleccionar_adulto(driver)
     boton_buscar(driver)
-
+    content = sacarHtmlEstático(driver)
+    result = sacarInfoHotel(content)
+    for h in result:
+       print(h)
+    soup_final = sacarHtmlEstático(driver)
+    lista_datos = sacarInfoHotel(soup_final)
+    guardar_en_csv(lista_datos, 'resultados_amimir_ibiza.csv')
     input("Toca alguna tecla")
     driver.quit()
