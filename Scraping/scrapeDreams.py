@@ -158,11 +158,30 @@ def sacarHtmlEstático(driver):
     """
     Función que saca el Html de la pagina estatica a scrapear
     """
-    WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH, "//body"))) #Esperar a que cargue todo
-    WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH, "//html")))
-    time.sleep(2)
+    WebDriverWait(driver,20).until(EC.presence_of_all_elements_located((By.XPATH, "//html"))) #Esperar a que cargue todo
+    WebDriverWait(driver,40).until(EC.presence_of_all_elements_located((By.XPATH, '//div')))
+    time.sleep(3)
+    
+
+    #Coge la primera altura del html, es decir, la altura inicial sin hacer scroll down
+    ult_altura = driver.execute_script("return document.body.scrollHeight")
+    
+    #Hacer todo el scroll down
+    fin = False
+    while not fin:
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+        time.sleep(3)
+
+        altura = driver.execute_script("return document.body.scrollHeight")
+        if altura == ult_altura:
+            fin = True
+        ult_altura = altura
+
     html_estatico = driver.page_source
     soup = BeautifulSoup(html_estatico, "html.parser")
+
+    print("Html obtenido con éxito")
     return soup
 
 #-------------Inicio scraping estático-------------------------------------
