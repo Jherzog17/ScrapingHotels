@@ -131,16 +131,52 @@ def sacarHtmlEstático(driver):
 
 #------------------------Inicio scraping estático---------------------------------------------
 
-#Funcnion de ejemplo, crear aqui la o las funciones
-def sacarInfoEjemplo(soup):
+def sacarInfoHoteles(soup):
     """
-    Funcion que saca el nombre del primer hotel
+    Funcion que va a sacar la informacion de los hoteles necesaria
     """
+    resultado = []
     try:
-        nomobe_hotel_prueba = soup.find(name="h3", attrs={"class":"a97d37cded"})
-        print(nomobe_hotel_prueba.text)
+        datos_hoteles = soup.find_all(name="div", attrs={"class":"aa97d6032f"})
+        for dh in datos_hoteles:
+            #nombre del hotel y la excepcion si no encuentra nada
+            nom_hot = dh.find("div", class_=["b87c397a13", "a3e0b4ffd1"])
+            nombre_hotel = nom_hot.text.strip() if nom_hot else "N/A"
+
+            # como booking  en algunos elemntos contiene dos clases o mas dentro (<div class="f63b14ab7a dff2e52086">) BeautifulSoup lo lee como una sola clase con un espacio dentro (qe no existe en html) por eso hay que ponerlas como una lista para que puedan ser leidas
+            valor_hot = dh.find("div", class_=["f63b14ab7a", "dff2e52086"])
+            valoracion_hotel = valor_hot.text.strip() if valor_hot else "N/A"
+
+            # aqui uso un data testid porque al ser booking un html dinamico las clases son bastante insetables, y por eso con el metodo de antes me devolvia de nuevo el nombre del hotel. Usando data-testid se concreta mas y me resolvio el problema
+            pre_hot = dh.find(attrs={"data-testid": "price-and-discounted-price"})
+            precio_hotel = pre_hot.get_text() if pre_hot else "N/A"
+
+            #comome ha fucnionado bien, repito el metdoo para la ubicacion
+            ubi_hot = dh.find("span", class_=["d823fbbeed", "f9b3563dd4"])
+            ubicacion_hotel = ubi_hot.text.strip() if ubi_hot else "N/A"
+
+            cont_est = dh.find("div", class_="b5ab46c480")
+            num_estrellas = len(cont_est.find_all(class_="e03979cfad")) if cont_est else 0
+
+
+
+      # 6) Montaje de la línea (mismo formato que Amimir: ; como separador)
+            if nombre_hotel != "N/A":
+                linea = (
+                    nombre_hotel + ";" +
+                    (valoracion_hotel if valoracion_hotel else "N/A") + ";" +
+                    (precio_hotel if precio_hotel else "N/A") + ";" +
+                    f"{num_estrellas} estrellas" + ";" + 
+                    (ubicacion_hotel if ubicacion_hotel else "N/A")
+                )
+                resultado.append(linea)
+
+        return resultado
+
     except Exception as e:
         print(f"Fallo al conseguir la info de prueba {e}")
+        return []
+
 
 #------------------------Fin scraping estático------------------------------------------------
 def ejecutar_script(url, lugar):
@@ -157,9 +193,12 @@ def ejecutar_script(url, lugar):
     soup = sacarHtmlEstático(driver)
 
     #Inicio del scraping estático
-    sacarInfoEjemplo(soup)
+    lista_hoteles = sacarInfoHoteles(soup)
+    print("Número de hoteles encontrados:", len(lista_hoteles))
+    print("Primeros resultados:")
+    for fila in lista_hoteles[:3]:
+        print(fila)
 
     #Esto esta para poder ver la pagina mientras programamos, luego hay que quitar el input y poner el driver.quit justo despues de soup
     input("Pulsa cualquier tecla para cerrar el navegador ")
     driver.quit()
-
