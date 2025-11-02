@@ -10,13 +10,13 @@ import time
 EDREAMS = "Edreams"
 
 #----------------------------Inicio scraping dinámico-----------------------------------
-def iniciar_navegador(url):
+def iniciar_navegador():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--no-sandbox")
 
     driver = webdriver.Chrome(options=chrome_options)
-    driver.get(url)
+    driver.get("https://www.edreams.com/")
     return driver
 
 
@@ -187,32 +187,61 @@ def sacarHtmlEstático(driver):
 #-------------Inicio scraping estático-------------------------------------
 
 def sacarInfoHotel(soup):
-    result = []
+    resultado = []
     try:
-        hotel_data = soup.findAll(name="div", attrs={"class":"e1e2fhza0 css-1xbhoqb e4px6vc2"})
+        # se usa data testid (como en booking) porque las clases de cada bloque de info son diferentes algunas 
+        hotel_data = soup.find_all("div", attrs={"data-testid": True})
+        # todas empiezan igual pero luego tienen un numero por eso busco por lo que empieza no por el data testid como tal 
+        hotel_data = [h for h in hotel_data if "e2e-accommodation-item-" in h["data-testid"]]
+
         for hd in hotel_data:
-            h_nombre = hd.find(name="div", attrs={"class":"css-1kr9ao9 e1hue9ey0"}).text
-            h_puntuacion_div = hd.find(name="div", attrs={"class": "css-ap40a3 e8d0hso0"})
-            if h_puntuacion_div:
-                texto_puntuacion = h_puntuacion_div.text.strip()
-                match = re.search(r'\d+(\.\d+)?', texto_puntuacion)
-                h_rate = match.group() if match else ""
-            else:
+          
+            nodo_nom = hd.find("div", class_=["css-1kr9ao9", "e1hue9ey0"])
+            h_nombre = nodo_nom.text if nodo_nom else "N/A"
+
+            nodo_rate = hd.find("div", class_=["css-ap40a3"])
+            if nodo_rate:
+                texto_rate = nodo_rate.text
+                # para dejar solo numeros y el decimal
                 h_rate = ""
-            h_price = hd.find(name="span", attrs={"class":"css-1vtqrtx e139ay0z0"}).text
-            h_estrellas = len(hd.findAll(name="i", attrs={"class":"css-lbmci7 e5a5h7y0"}))
-            h_direccion =hd.find(name="div", attrs={"class":"css-9xspy4 e8d0hso0"}).text
-            if len(h_nombre) > 0:
-                result.append(h_nombre + ";" + h_rate*2 + ";" + h_price + ";" + str(h_estrellas) + ";" + h_direccion)
-        return result
+                for caracter in texto_rate:
+                    if caracter.isdigit() or caracter == ".":
+                        h_rate = h_rate + caracter
+                if h_rate == "":
+                    h_rate = "N/A"
+            else:
+                h_rate = "N/A"
+
+
+          
+            nodo_price = hd.find("span", class_=["css-1vtqrtx", "e139ay0z0"])
+            h_price = nodo_price.text if nodo_price else "N/A"
+
+            cont_est = hd.find("div", class_=["css-1szo4kn", "e17fzqxg0"])
+            h_estrellas = len(cont_est.find_all(class_=["css-lbmci7"])) if cont_est else 0
+
+        
+            nodo_dir = hd.find("div", class_=["css-9xspy4"])
+            h_direccion = nodo_dir.text if nodo_dir else "N/A"
+
+         
+            if h_nombre != "N/A":
+                resultado.append(
+                    h_nombre + ";" + h_rate + ";" + h_price + ";" + str(h_estrellas) + ";" + h_direccion
+                )
+
+        return resultado
+
     except Exception as e:
         print(f"Fallo al conseguir la info de prueba {e}")
+        return []  
+
 
 
 def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos.csv'):
     cabeceras = ['Nombre', 'Puntuacion', 'Precio', 'Estrellas', 'Direccion']
     try:
-        with open(f"../csv/{nombre_archivo}", 'w', newline='', encoding='utf-8') as archivo_csv:
+        with open(f"csv/{nombre_archivo}", 'w', newline='', encoding='utf-8') as archivo_csv:
             escritor = csv.writer(archivo_csv, delimiter=';')
             escritor.writerow(cabeceras)
             for linea_datos in datos_hoteles:
@@ -226,9 +255,9 @@ def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos.csv'):
 
 #-----------------Fin del scraping estático----------------------------------------------
 
-def ejecutar_script_edreams(url, lugar, nom_csv):
+def ejecutar_script_edreams(lugar, nom_csv):
     #Scraping dinámico
-    driver = iniciar_navegador(url)
+    driver = iniciar_navegador()
     aceptarCookies(driver)
     cerrarLogin(driver)
     pulsar_hotels(driver)
@@ -245,6 +274,4 @@ def ejecutar_script_edreams(url, lugar, nom_csv):
     lista_resultado = sacarInfoHotel(soup)
     guardar_en_csv(lista_resultado, nom_csv)
 
-
-    input("Pulsa para salir")
     driver.quit()
