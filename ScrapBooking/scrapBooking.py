@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
+import csv
 import time
 
 
@@ -137,8 +138,8 @@ def sacarInfoHoteles(soup):
     """
     resultado = []
     try:
-        datos_hoteles = soup.find_all(name="div", attrs={"class":"aa97d6032f"})
-        for dh in datos_hoteles:
+        datos_hotel = soup.find_all(name="div", attrs={"class":"aa97d6032f"})
+        for dh in datos_hotel:
             #nombre del hotel y la excepcion si no encuentra nada
             nom_hot = dh.find("div", class_=["b87c397a13", "a3e0b4ffd1"])
             nombre_hotel = nom_hot.text.strip() if nom_hot else "N/A"
@@ -159,7 +160,6 @@ def sacarInfoHoteles(soup):
             num_estrellas = len(cont_est.find_all(class_="e03979cfad")) if cont_est else 0
 
 
-
     
             if nombre_hotel != "N/A":
                 linea = (
@@ -178,8 +178,23 @@ def sacarInfoHoteles(soup):
         return []
 
 
+def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos_booking.csv'):
+    cabeceras = ['Nombre', 'Puntuación', 'Precio', 'Estrellas', 'Direccion']
+    try:
+        with open(f"../csv/{nombre_archivo}", 'w', newline='', encoding='utf-8') as archivo_csv:
+            escritor = csv.writer(archivo_csv, delimiter=';')
+            escritor.writerow(cabeceras)
+            for linea_datos in datos_hoteles:
+                fila_lista = linea_datos.split(';')
+                escritor.writerow(fila_lista)
+
+        print(f"¡Datos guardados exitosamente en '{nombre_archivo}'!")
+
+    except IOError as e:
+        print(f" Error al escribir el archivo CSV: {e}")
+
 #------------------------Fin scraping estático------------------------------------------------
-def ejecutar_script(url, lugar):
+def ejecutar_script(url, lugar, nom_csv):
     #Inicio scraping dinámico
     driver = iniciarNavegador(url)
     cerrarLogin(driver)
@@ -194,11 +209,10 @@ def ejecutar_script(url, lugar):
 
     #Inicio del scraping estático
     lista_hoteles = sacarInfoHoteles(soup)
-    print("Número de hoteles encontrados:", len(lista_hoteles))
-    print("Primeros resultados:")
-    for fila in lista_hoteles[:3]:
-        print(fila)
-
-    #Esto esta para poder ver la pagina mientras programamos, luego hay que quitar el input y poner el driver.quit justo despues de soup
-    input("Pulsa cualquier tecla para cerrar el navegador ")
+    import os
+    print("Ruta actual de ejecución:", os.getcwd())
+    
+    guardar_en_csv(lista_hoteles, nom_csv)
     driver.quit()
+
+    
