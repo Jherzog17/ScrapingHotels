@@ -4,9 +4,9 @@ from scrapeDreams import *
 
 url="https://www.edreams.com"
 lugar_ibiza ="Ibiza"
-#nom_csv_ibiza = "resultados_amimir_ibiza.csv"
+nom_csv_ibiza = "resultados_edreams_ibiza.csv"
 
-ejecutar_script(url, lugar_ibiza)
+ejecutar_script(url, lugar_ibiza, nom_csv_ibiza)
 
 """
 #Scrap para Sevilla

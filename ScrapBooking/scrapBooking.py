@@ -126,6 +126,7 @@ def sacarHtmlEstático(driver):
     """
     WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH, "//div"))) #Esperar a que cargue todo
     WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH, "//html")))
+    time.sleep(3)
     html_estatico = driver.page_source
     soup = BeautifulSoup(html_estatico, "html.parser")
     return soup

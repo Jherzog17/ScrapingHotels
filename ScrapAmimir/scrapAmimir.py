@@ -24,7 +24,7 @@ def aceptarCookies(driver):
         btn_accpt_cookies = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div[2]/div[2]/a")))
         btn_accpt_cookies.click()
-        print("Cookies acceptadas con éxito")
+        print("Cookies aceptadas con éxito")
     except Exception as e:
         print(f"Error al aceptar cookies: {e}")
 
@@ -118,8 +118,10 @@ def sacarHtmlEstático(driver):
     """
     WebDriverWait(driver,20).until(EC.presence_of_all_elements_located((By.XPATH, "//html"))) #Esperar a que cargue todo
     WebDriverWait(driver,40).until(EC.presence_of_all_elements_located((By.XPATH, '//div')))
+    time.sleep(3)
     html_estatico = driver.page_source
     soup = BeautifulSoup(html_estatico, "html.parser")
+    print("Html obtenido con éxito")
     return soup
 # ------------------------Inicio scrapping estático---------------------------------------------
 def sacarInfoHotel(soup):
@@ -146,6 +148,7 @@ def sacarInfoHotel(soup):
 
             if len(h_nombre) > 0:
                 result.append(h_nombre + ";" + h_rate + ";" + h_price + ";" + str(h_estrellas) + " estrellas" + ";" + str(h_llaves) + " llaves" + ";" + h_direccion)
+        print("Scraping estático realizado con éxtio")
         return result
     except Exception as e:
         print(f"Fallo al conseguir la info de prueba {e}")
