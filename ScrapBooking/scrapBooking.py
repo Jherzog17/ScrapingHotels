@@ -160,13 +160,13 @@ def sacarInfoHoteles(soup):
 
 
 
-      # 6) Montaje de la línea (mismo formato que Amimir: ; como separador)
+    
             if nombre_hotel != "N/A":
                 linea = (
                     nombre_hotel + ";" +
                     (valoracion_hotel if valoracion_hotel else "N/A") + ";" +
                     (precio_hotel if precio_hotel else "N/A") + ";" +
-                    f"{num_estrellas} estrellas" + ";" + 
+                    f"{num_estrellas}" + ";" + 
                     (ubicacion_hotel if ubicacion_hotel else "N/A")
                 )
                 resultado.append(linea)
