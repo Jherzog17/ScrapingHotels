@@ -6,13 +6,15 @@ from bs4 import BeautifulSoup
 import csv
 import time
 
+AMIMIR = "Amimir"
 
-def iniciar_navegador(url):
+def iniciar_navegador():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--start-maximized")
+    chrome_options.add_argument("--no-sandbox")
 
     driver = webdriver.Chrome(options=chrome_options)
-    driver.get(url)
+    driver.get("https://www.amimir.com/es/")
     return driver
 
 
@@ -157,7 +159,7 @@ def sacarInfoHotel(soup):
 def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos_amimir.csv'):
     cabeceras = ['Nombre', 'Puntuación', 'Precio', 'Estrellas', 'Llaves', 'Direccion']
     try:
-        with open(f"../csv/{nombre_archivo}", 'w', newline='', encoding='utf-8') as archivo_csv:
+        with open(f"csv/{nombre_archivo}", 'w', newline='', encoding='utf-8') as archivo_csv:
             escritor = csv.writer(archivo_csv, delimiter=';')
             escritor.writerow(cabeceras)
             for linea_datos in datos_hoteles:
@@ -170,9 +172,9 @@ def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos_amimir.csv')
         print(f" Error al escribir el archivo CSV: {e}")
 
 # ------------------------Fin scraping estático---------------------------------------------
-def ejecutar_script(url, lugar, nom_csv):
+def ejecutar_script_amimir(lugar, nom_csv):
     #Parte dinámica
-    driver = iniciar_navegador(url)
+    driver = iniciar_navegador()
     aceptarCookies(driver)
     seleccionarLugar(driver, lugar)
     seleccionarFechas(driver)

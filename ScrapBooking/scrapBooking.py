@@ -6,10 +6,11 @@ from bs4 import BeautifulSoup
 import csv
 import time
 
+BOOKING = "Booking"
 
 #----------------------Inicio Scraping Dinámico-----------------------------------
 
-def iniciarNavegador(url):
+def iniciarNavegador():
     '''
     Función que inicializa el navegador, en este caso
     Google Chrome, con unas opciones específicas.
@@ -17,9 +18,10 @@ def iniciarNavegador(url):
     #Opciones del navegador
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--start-maximized")
+    chrome_options.add_argument("--no-sandbox")
 
     driver = webdriver.Chrome(options=chrome_options)
-    driver.get(url)
+    driver.get("https://www.booking.com")
     return driver
 
 def cerrarLogin(driver):
@@ -182,7 +184,7 @@ def sacarInfoHoteles(soup):
 def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos_booking.csv'):
     cabeceras = ['Nombre', 'Puntuación', 'Precio', 'Estrellas', 'Direccion']
     try:
-        with open(f"../csv/{nombre_archivo}", 'w', newline='', encoding='utf-8') as archivo_csv:
+        with open(f"csv/{nombre_archivo}", 'w', newline='', encoding='utf-8') as archivo_csv:
             escritor = csv.writer(archivo_csv, delimiter=';')
             escritor.writerow(cabeceras)
             for linea_datos in datos_hoteles:
@@ -195,9 +197,9 @@ def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos_booking.csv'
         print(f" Error al escribir el archivo CSV: {e}")
 
 #------------------------Fin scraping estático------------------------------------------------
-def ejecutar_script(url, lugar, nom_csv):
+def ejecutar_script_booking(lugar, nom_csv):
     #Inicio scraping dinámico
-    driver = iniciarNavegador(url)
+    driver = iniciarNavegador()
     cerrarLogin(driver)
     aceptarCookies(driver)
     seleccionarLugar(driver, lugar)
@@ -210,9 +212,6 @@ def ejecutar_script(url, lugar, nom_csv):
 
     #Inicio del scraping estático
     lista_hoteles = sacarInfoHoteles(soup)
-    import os
-    print("Ruta actual de ejecución:", os.getcwd())
-    
     guardar_en_csv(lista_hoteles, nom_csv)
     driver.quit()
 

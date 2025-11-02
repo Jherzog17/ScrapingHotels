@@ -7,11 +7,13 @@ import csv
 import re
 import time
 
+EDREAMS = "Edreams"
 
 #----------------------------Inicio scraping dinámico-----------------------------------
 def iniciar_navegador(url):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--start-maximized")
+    chrome_options.add_argument("--no-sandbox")
 
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
@@ -205,7 +207,7 @@ def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos.csv'):
 
 #-----------------Fin del scraping estático----------------------------------------------
 
-def ejecutar_script(url, lugar, nom_csv):
+def ejecutar_script_edreams(url, lugar, nom_csv):
     #Scraping dinámico
     driver = iniciar_navegador(url)
     aceptarCookies(driver)
