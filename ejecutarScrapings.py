@@ -25,4 +25,4 @@ for lugar in lista_lugares:
 
     i=0
 
-print(f"Hora de fin: [{time.strftime('%H:%M:%S')}]")
+print(f"Hora de fin: [{time.strftime('%H:%M:%S')}] ")
