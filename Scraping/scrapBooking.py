@@ -19,7 +19,7 @@ def iniciarNavegador():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--no-sandbox")
-
+    chrome_options.binary_location = "/usr/bin/chromium-browser"
     driver = webdriver.Chrome(options=chrome_options)
     driver.get("https://www.booking.com")
     return driver
@@ -203,7 +203,7 @@ def sacarInfoHoteles(soup):
 def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos_booking.csv'):
     cabeceras = ['Nombre', 'Puntuación', 'Precio', 'Estrellas', 'Direccion']
     try:
-        with open(f"csv/{nombre_archivo}", 'w', newline='', encoding='utf-8') as archivo_csv:
+        with open(nombre_archivo, 'w', newline='', encoding='utf-8') as archivo_csv:
             escritor = csv.writer(archivo_csv, delimiter=';')
             escritor.writerow(cabeceras)
             for linea_datos in datos_hoteles:
