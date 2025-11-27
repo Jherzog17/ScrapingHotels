@@ -119,6 +119,22 @@ def buscar(driver):
     except Exception as e:
         print(f"Error al darle a buscar {e}")
 
+def cargar_mas_resultados(driver):
+    """
+    Funcion que da al boton de cargar mas, si le da,
+    devuelve True ya que puede haber mas resultados al
+    cargar mas, si no le da, devuelve False
+    """
+    try:
+        # Buscamos el botón por el texto "Cargar más resultados" dentro de un span
+        # Usamos un tiempo de espera corto porque queremos saber rápidamente si existe o no
+        btn_cargar_mas = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.XPATH, '//button[@class="de576f5064 b46cd7aad7 d0a01e3d83 dda427e6b5 bbf83acb81 a0ddd706cc"]'))
+        )
+        btn_cargar_mas.click()
+        return True
+    except Exception as e:
+        return False
 
 #------------------------Fin scraping dinámico------------------------------------------------
 
@@ -226,12 +242,14 @@ def ejecutar_script_booking(lugar, nom_csv):
     seleccionarViajeros(driver)
     buscar(driver)
 
-    #Sacar el html estatico
     soup = sacarHtmlEstático(driver)
+
+    while cargar_mas_resultados(driver) :
+        soup = sacarHtmlEstático(driver)
+
 
     #Inicio del scraping estático
     lista_hoteles = sacarInfoHoteles(soup)
     guardar_en_csv(lista_hoteles, nom_csv)
     driver.quit()
 
-    

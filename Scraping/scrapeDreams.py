@@ -153,6 +153,23 @@ def dismissDiscounts(driver):
     except Exception as e:
         print(f"Error al cerrar la propaganda: {e}")
 
+def cargar_mas_resultados(driver):
+    """
+    Funcion que le da al boton de siguiente pagina,
+    si no está es que ya no hay mas resultado por lo que devuelve False
+    """
+    try:
+        # Buscamos el botón por el texto "See more hotels"
+        btn_siguiente = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.XPATH, '//button[@aria-label="Next page"]'))
+        )
+        btn_siguiente.click()
+        print("Botón de siguiente pagina presionado")
+        return True
+    except Exception:
+        # Si no se encuentra el botón o no es clickable, asumimos que no hay más resultados
+        return False
+
 #-------------Fin scraping dincamico------------------------------------
 
 def sacarHtmlEstático(driver):
@@ -268,11 +285,20 @@ def ejecutar_script_edreams(lugar, nom_csv):
     search(driver)
     dismissDiscounts(driver)
 
+
     #Sacar html estático
     soup = sacarHtmlEstático(driver)
-    
-    #Scraping estático y guardado en csv
     lista_resultado = sacarInfoHotel(soup)
+
+    while cargar_mas_resultados(driver):
+        soup = sacarHtmlEstático(driver)
+        list_temp = sacarInfoHotel(soup)
+        for e in list_temp:
+            lista_resultado.append(e)
+
+    
+    
     guardar_en_csv(lista_resultado, nom_csv)
 
     driver.quit()
+
