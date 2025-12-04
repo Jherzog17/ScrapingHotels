@@ -60,7 +60,7 @@ def seleccionarLugar(driver, lugar):
 
 def seleccionarFechas(driver):
     """
-    Función que selecciona las fechas del 7 al 8 de enero
+    Función que selecciona las fechas del 17 al 18 de febrero
     """
     try:
         #Presionar el boton de las fechas
@@ -70,14 +70,12 @@ def seleccionarFechas(driver):
         #Presionar el boton de mes siguiente
         btn_siguiente_mes = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Mes siquiente']")))
         btn_siguiente_mes.click()
-        btn_siguiente_mes.click()
-
         #Presionar seleccionar 7 de enero
-        btn_7_enero = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Mi 7 enero 2026']")))
+        btn_7_enero = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Ma 17 febrero 2026']")))
         btn_7_enero.click()
 
         #Presionar seleccionar 8 de enero
-        btn_8_enero = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Ju 8 enero 2026']")))
+        btn_8_enero = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Mi 18 febrero 2026']")))
         btn_8_enero.click()
 
 
