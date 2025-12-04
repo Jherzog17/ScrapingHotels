@@ -50,7 +50,7 @@ def seleccionarLugar(driver, lugar):
 
 def seleccionarFechas(driver):
     """
-    funcion para elegir las fechas, que serán del 7 al 8 de enero
+    funcion para elegir las fechas, que serán del 17 al 18 de febrero
     """
     try:
         # Presionar el boton de las fechas
@@ -60,14 +60,13 @@ def seleccionarFechas(driver):
         btn_flecha = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//i[@class='fa fa-lg fa-chevron-right']")))
         btn_flecha.click()
-        btn_flecha.click()
         # seleccionar fecha de inicio
         btn_dia_inicio = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Enero 7, 2026']")))
+            EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Febrero 17, 2026']")))
         btn_dia_inicio.click()
         #seleccionar la fecha de fin
         btn_dia_fin = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Enero 8, 2026']")))
+            EC.element_to_be_clickable((By.XPATH, "//span[@aria-label='Febrero 18, 2026']")))
         btn_dia_fin.click()
 
         # aceptar fechas

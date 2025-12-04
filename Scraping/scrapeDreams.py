@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import csv
 import re
 import time
+import numpy as np
 
 EDREAMS = "Edreams"
 
@@ -72,7 +73,7 @@ def seleccionarLugar(driver, lugar):
 
 def seleccionarFechas(driver):
     """
-    funcion para elegir las fechas, que serán del 7 al 8 de enero
+    funcion para elegir las fechas, que serán del 17 al 18 de febrero
     """
     try:
 
@@ -84,19 +85,18 @@ def seleccionarFechas(driver):
         #Seleccionar pasar mes
         btn_pasar_mes=WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//div[@data-testid='departure-date-picker']/div/div/div[2]/div/div/div/div[4]/button")))
         btn_pasar_mes.click()
-        btn_pasar_mes.click()
 
         #Botón día de inicio
         btn_dia = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//div[@data-testid='departure-date-picker']/div/div/div[2]/div/div/div/div[2]/div/div[2]/div[3]/div[3]")))
+            (By.XPATH, "//div[@data-testid='departure-date-picker']/div/div/div[2]/div/div/div/div[2]/div/div[2]/div[4]/div[6]")))
         btn_dia.click()
-
+        
         # Botón día de fin
-        todos_los_dias = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "odf-calendar-day")))
+        todos_los_dias = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="odf-calendar-day odf-calendar-day-weekend"]')))
         i=0
         encontrado = False
         while i < len(todos_los_dias) and not encontrado:
-            if todos_los_dias[i].text == "8":
+            if todos_los_dias[i].text == "18":
                 encontrado = True
             else:
                 i +=1 
@@ -231,9 +231,18 @@ def sacarInfoHotel(soup):
                 h_rate = "N/A"
 
 
-          
-            nodo_price = hd.find("span", class_=["css-1vtqrtx", "e139ay0z0"])
-            h_price = nodo_price.text if nodo_price else "N/A"
+            try:
+                nodo_price = hd.find("span", class_=["css-1vtqrtx", "e139ay0z0"])
+                if nodo_price:
+                    h_price = nodo_price.text
+                else:
+                    raise Exception
+            except Exception:
+                nodo_price= hd.find("div", attrs={"data-testid":"striked-price"})
+                if nodo_price:
+                    h_price = nodo_price.text
+                else:
+                    h_price = np.nan
 
             cont_est = hd.find("div", class_=["css-1szo4kn", "e17fzqxg0"])
             h_estrellas = len(cont_est.find_all(class_=["css-lbmci7"])) if cont_est else 0
