@@ -36,7 +36,7 @@ def normalizar_nombres(dfs: dict):
         df["Nombre"] = df["Nombre"].str.replace("ú", "u")
 
         #Quitar stopwords o palabras inutiles
-        hoteles = ["guesthouse", "agroturismo", "aparthotel","resorts", "resort", "boutique","hotels","hoteles", "hotel", "hostales","hostal", "hostel", "apartamentos","apartamento", "apartments", "apartment", "adults only", "ibiza", "suites", "suit", "pensiones", "pension", "villa"]
+        hoteles = ["guesthouse", "agroturismo", "aparthotel","resorts", "resort", "boutique","hotels","hoteles", "hotel", "hostales","hostal", "hostel", "apartamentos","apartamento", "apartments", "apartment", "adults only", "ibiza", "suites", "suite", "pensiones", "pension", "villa"]
         for hotel in hoteles:
             df["Nombre"] = df["Nombre"].str.replace(hotel, "")
         
@@ -45,7 +45,9 @@ def normalizar_nombres(dfs: dict):
         for det in determinantes:
             df["Nombre"] = df["Nombre"].str.replace(det, "", regex=True)
 
-        #En booking a veces viene una descripcion con el nombre, esto viene siempre separado por - o ,
+        #En booking a veces viene una descripcion con el nombre, esto viene siempre separado por - o , pasa lo mismo con by y el nombre de algo
+        df["Nombre"] = df["Nombre"].map(lambda x: x.split("-")[0])
+        df["Nombre"] = df["Nombre"].map(lambda x: x.split("by")[0])
 
         #Quitar espacios extra
         df["Nombre"] = df["Nombre"].str.replace(r"\s+", " ", regex=True)
@@ -58,10 +60,9 @@ def normalizar_nombres(dfs: dict):
 def unir_df(dfs:dict):
     df_unido = pd.concat(list(dfs.values()), ignore_index=True)
     df_ordenado = df_unido.sort_values("Nombre")
-    df_filrado = df_ordenado.groupby('Nombre').filter(lambda x: len(x) == 3)
-    df_filrado.reset_index(drop=True, inplace=True)
-    print(df_ordenado.head(n=50))
-    return df_filrado
+    df_filtrado = df_ordenado.groupby('Nombre').filter(lambda x: len(x) == 3)
+    df_filtrado.reset_index(drop=True, inplace=True)
+    return df_filtrado
 
 if __name__ == "__main__":
     dfs = leer_csv_zona("Ibiza")
