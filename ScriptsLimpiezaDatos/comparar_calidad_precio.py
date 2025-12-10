@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 
 carpeta_root = Path(__file__).resolve().parent.parent
+
 #cargamos todos los csv
 path=carpeta_root/"Datos/crudo"
 web_ciu=[("Amimir",  "Ibiza"),("Amimir",  "Sevilla"),("Amimir",  "Zaragoza"),
