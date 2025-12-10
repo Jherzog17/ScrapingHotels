@@ -1,18 +1,22 @@
 import pandas as pd
 import numpy as np
 import re
+from pathlib import Path
+
+carpeta_root = Path(__file__).resolve().parent.parent
+
 #cargamos todos los csv
-amimir_ibiza=pd.read_csv("ScrapingHotels/csv/resultados_Amimir_Ibiza.csv", sep=";", encoding="utf-8")
-amimir_sevilla=pd.read_csv("ScrapingHotels/csv/resultados_Amimir_Sevilla.csv", sep=";", encoding="utf-8")
-amimir_zaragoza=pd.read_csv("ScrapingHotels/csv/resultados_Amimir_Zaragoza.csv", sep=";", encoding="utf-8")
+amimir_ibiza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Amimir_Ibiza.csv", sep=";", encoding="utf-8")
+amimir_sevilla=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Amimir_Sevilla.csv", sep=";", encoding="utf-8")
+amimir_zaragoza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Amimir_Zaragoza.csv", sep=";", encoding="utf-8")
 
-booking_ibiza=pd.read_csv("ScrapingHotels/csv/resultados_Booking_Ibiza.csv", sep=";", encoding="utf-8")
-booking_sevilla=pd.read_csv("ScrapingHotels/csv/resultados_Booking_Sevilla.csv", sep=";", encoding="utf-8")
-booking_zaragoza=pd.read_csv("ScrapingHotels/csv/resultados_Booking_Zaragoza.csv", sep=";", encoding="utf-8")
+booking_ibiza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Booking_Ibiza.csv", sep=";", encoding="utf-8")
+booking_sevilla=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Booking_Sevilla.csv", sep=";", encoding="utf-8")
+booking_zaragoza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Booking_Zaragoza.csv", sep=";", encoding="utf-8")
 
-edreams_ibiza=pd.read_csv("ScrapingHotels/csv/resultados_Edreams_Ibiza.csv", sep=";", encoding="utf-8")
-edreams_sevilla=pd.read_csv("ScrapingHotels/csv/resultados_Edreams_Sevilla.csv", sep=";", encoding="utf-8")
-edreams_zaragoza=pd.read_csv("ScrapingHotels/csv/resultados_Edreams_Zaragoza.csv", sep=";", encoding="utf-8")
+edreams_ibiza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Edreams_Ibiza.csv", sep=";", encoding="utf-8")
+edreams_sevilla=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Edreams_Sevilla.csv", sep=";", encoding="utf-8")
+edreams_zaragoza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Edreams_Zaragoza.csv", sep=";", encoding="utf-8")
 
 #añadimos a tosos columnas con sus respectivas ciudades y webs, para al concatenar poder diferenciar
 amimir_ibiza["ciudad"]="Ibiza"

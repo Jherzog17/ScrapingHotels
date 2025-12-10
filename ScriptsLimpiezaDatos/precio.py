@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-carpeta_root = Path(__file__).resolve().parent
+carpeta_root = Path(__file__).resolve().parent.parent
 #cargamos todos los csv
 path=carpeta_root
 web_ciu=[("Amimir",  "Ibiza"),("Amimir",  "Sevilla"),("Amimir",  "Zaragoza"),

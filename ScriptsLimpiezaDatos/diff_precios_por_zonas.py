@@ -11,7 +11,7 @@ def leer_csv_zona_webs(zonas:list, webs:list):
     Además, esta funcion soluciona el problema de la columna Puntuación y Puntuacion dejandolo como Puntuacion
     y tambien crea una columna con la web a la que pertenece el df y otra con la zona
     """
-    directorio_root = Path(__file__).resolve().parent
+    directorio_root = Path(__file__).resolve().parent.parent
     dfs = {}
     
     for web in webs:
@@ -135,12 +135,10 @@ def hacer_plot_freq(df, tipo_grafica="pie"):
 
 if __name__ == "__main__":
     webs= ["Amimir", "Booking"]
-    dfs = leer_csv_zona_webs(["Zaragoza"], webs)
+    dfs = leer_csv_zona_webs(["Sevilla"], webs)
     dfs_normalizado = normalizar_nombres(dfs)
     df_unido = unir_df(dfs)
-    df_solo_3 = df_unido.groupby("Nombre_norm").filter(lambda x: len(x) == 3)
-    df_solo_3.reset_index(inplace=True)
-    df_solo_3.to_csv("prueba.csv")
+
     #Hacer plot de los hoteles y donde aparecen repetidos
     #Coincidencias en las 3 webs
     barras_2_webs = hacer_plot_freq(df_unido, "bar")
