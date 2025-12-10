@@ -1,6 +1,9 @@
 import pandas as pd
 from pathlib import Path 
 import matplotlib.pyplot as plt
+from precio import limpiar_puntuacion
+
+directorio_root = Path(__file__).resolve().parent.parent
 
 def leer_csv_zona_webs(zonas:list, webs:list):
     """
@@ -48,8 +51,8 @@ def normalizar_nombres(dfs: dict):
         for hotel in hoteles:
             df["Nombre_norm"] = df["Nombre_norm"].str.replace(hotel, "")
         
-        #Quitar determinantes y signos de puntuación
-        determinantes = [r"\bde\b", r"\bel\b", r"\bla\b", r"\blos\b", r"\bdel\b", r"\bcan\b", r"\by\b", r"\*", ","]
+        #Quitar determinantes , signos de puntuación
+        determinantes = [r"\bde\b", r"\bel\b", r"\bla\b", r"\blos\b", r"\bdel\b", r"\bcan\b", r"\by\b", r"\*", ",", r"[0123456789]"]
         for det in determinantes:
             df["Nombre_norm"] = df["Nombre_norm"].str.replace(det, "", regex=True)
 
@@ -131,18 +134,53 @@ def hacer_plot_freq(df, tipo_grafica="pie"):
             raise Exception()
     except Exception:
         print("Tipo de gráfica introducida no válida. Tiene que ser o pie o bar")
+
+def plot_comparativa_webs(df):
+    """
+    Crea un gráfico de barras horizontales comparando precios de hoteles entre webs.
+    Solo muestra hoteles que aparecen en TODAS las webs del DataFrame.
     
+    Parámetros:
+    - df: DataFrame con columnas 'Nombre_norm', 'Precio', y 'web'
+    """
+    num_webs: list = list(df['web'].unique())
+    df_filtrado = df.groupby("Nombre_norm", as_index=False).filter(lambda x: len(x) == len(num_webs))
+    
+    nombre_columnas = df_filtrado.groupby("Nombre_norm")["Nombre"].first()
+    zona = list(df_filtrado["zona"].unique())[0]
+    
+    df_reducido = df_filtrado.pivot_table(index='Nombre_norm', columns='web', values='Precio', aggfunc='first')
+    df_reducido.index = df_reducido.index.map(nombre_columnas)
+    
+    if len(df_reducido) > 15:
+        df_reducido = df_reducido.iloc[:15]
+    
+    df_reducido.plot(kind="barh")
+    plt.xlabel('Precio (€)')
+    plt.ylabel('')
+    plt.title(f"Precios de los hoteles en las distintas webs en {zona}")
+    plt.legend(title="Web")
+    plt.show()
+
+
 
 if __name__ == "__main__":
     webs= ["Amimir", "Booking"]
-    dfs = leer_csv_zona_webs(["Sevilla"], webs)
+    zonas=["Zaragoza"]
+    dfs = leer_csv_zona_webs(zonas, webs)
     dfs_normalizado = normalizar_nombres(dfs)
     df_unido = unir_df(dfs)
+    #Limpiar columnas puntuacion y precio
+    df_unido["Puntuacion"] = df_unido["Puntuacion"].map(limpiar_puntuacion)
+    df_unido["Precio"] = df_unido["Precio"].map(limpiar_puntuacion)
 
     #Hacer plot de los hoteles y donde aparecen repetidos
     #Coincidencias en las 3 webs
-    barras_2_webs = hacer_plot_freq(df_unido, "bar")
-    pie_3_webs = hacer_plot_freq(df_unido)
+    # barras_2_webs = hacer_plot_freq(df_unido, "bar")
+    # pie_3_webs = hacer_plot_freq(df_unido)
+    
+    # #Comparativa de precios entre webs para hoteles que aparecen en todas
+    # plot_comparativa_webs(df_unido)
     
     
     
