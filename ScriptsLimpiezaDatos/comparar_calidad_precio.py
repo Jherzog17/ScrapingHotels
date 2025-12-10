@@ -3,7 +3,8 @@ import numpy as np
 import re
 from pathlib import Path
 
-carpeta_root = Path(__file__).resolve().parent
+carpeta_root = Path(__file__).resolve().parent.parent
+
 #cargamos todos los csv
 amimir_ibiza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Amimir_Ibiza.csv", sep=";", encoding="utf-8")
 amimir_sevilla=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Amimir_Sevilla.csv", sep=";", encoding="utf-8")

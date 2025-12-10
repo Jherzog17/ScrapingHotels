@@ -11,7 +11,7 @@ def leer_csv_zona_webs(zonas:list, webs:list):
     Además, esta funcion soluciona el problema de la columna Puntuación y Puntuacion dejandolo como Puntuacion
     y tambien crea una columna con la web a la que pertenece el df y otra con la zona
     """
-    directorio_root = Path(__file__).resolve().parent
+    directorio_root = Path(__file__).resolve().parent.parent
     dfs = {}
     
     for web in webs:
@@ -43,20 +43,22 @@ def normalizar_nombres(dfs: dict):
         df["Nombre_norm"] = df["Nombre_norm"].str.replace("ó", "o")
         df["Nombre_norm"] = df["Nombre_norm"].str.replace("ú", "u")
 
-        #Quitar stopwords o palabras inutiles
-        hoteles = ["guesthouse", "agroturismo", "aparthotel","resorts", "resort", "boutique","hotels","hoteles", "hotel","sevilla's","sevilla", "zaragoza", "hostales","hostal", "hostel", "apartamentos","apartamento", "apartments", "apartment", "adults only", "ibiza", "suites", "suite", "pensiones", "pension", "villa"]
+        # Quitar stopwords o palabras inutiles
+        hoteles = ["affiliated","guesthouse", "agroturismo", "aparthotel","resorts", "resort", "boutique","hotels","hoteles", "hotel","sevilla's","sevilla", "seville", "bedroom","zaragoza", "hostales","hostal", "hostel", "apartamentos","apartamento", "apartments","apartment", "aparment", "adults only", "ibiza", "suites", "suite", "pensiones", "pension", "villa"]
         for hotel in hoteles:
             df["Nombre_norm"] = df["Nombre_norm"].str.replace(hotel, "")
         
         #Quitar determinantes y signos de puntuación
-        determinantes = [r"\bde\b", r"\bel\b", r"\bla\b", r"\blos\b", r"\bdel\b", r"\bcan\b"]
+        determinantes = [r"\bde\b", r"\bel\b", r"\bla\b", r"\blos\b", r"\bdel\b", r"\bcan\b", r"\by\b", r"\*", ","]
         for det in determinantes:
             df["Nombre_norm"] = df["Nombre_norm"].str.replace(det, "", regex=True)
 
-        #En booking a veces viene una descripcion con el nombre, esto viene siempre separado por - o , pasa lo mismo con by y el nombre de algo
-        df["Nombre_norm"] = df["Nombre_norm"].map(lambda x: x.split("-")[0])
-        df["Nombre_norm"] = df["Nombre_norm"].map(lambda x: x.split("by")[0])
-        df["Nombre_norm"] = df["Nombre_norm"].map(lambda x: x.split("en")[0])
+        #Quitar descripciones irrelevantes
+        df["Nombre_norm"] = df["Nombre_norm"].str.replace("-", " ")
+        df["Nombre_norm"] = df["Nombre_norm"].map(lambda x: x.split(" by ")[0])
+        df["Nombre_norm"] = df["Nombre_norm"].map(lambda x: x.split(" en ")[0])
+        df["Nombre_norm"] = df["Nombre_norm"].map(lambda x: x.split("with")[0])
+        df["Nombre_norm"] = df["Nombre_norm"].map(lambda x: x.split("zona")[0])
 
         #Quitar espacios extra
         df["Nombre_norm"] = df["Nombre_norm"].str.replace(r"\s+", " ", regex=True)
@@ -114,6 +116,7 @@ def hacer_plot_freq(df, tipo_grafica="pie"):
                 plt.ylabel("Número de hoteles", labelpad=55, rotation=0)
                 graf.set_ylim(0, (max(df_frecuencias.values)+max(df_frecuencias.values)*0.1))
                 graf.bar_label(graf.containers[0], padding=1, fontsize=10)
+                plt.show()
             else:
                 #Hacer el pie
                 df_frecuencias["Nombre_norm"].plot(kind="pie", autopct= lambda p : '{:.0f}\n({:.1f}%)'. format( p * total/100,p))
@@ -123,27 +126,23 @@ def hacer_plot_freq(df, tipo_grafica="pie"):
                 for i in range(2,len(num_webs)+2):
                     leyenda.append(f"Hoteles en {i} webs")
                 plt.legend(leyenda, loc="lower right", borderaxespad=-5)
+                plt.show()
         else:
             raise Exception()
     except Exception:
         print("Tipo de gráfica introducida no válida. Tiene que ser o pie o bar")
     
-    
+
 if __name__ == "__main__":
-    webs= ["Amimir", "Booking", "Edreams"]
+    webs= ["Amimir", "Booking"]
     dfs = leer_csv_zona_webs(["Sevilla"], webs)
     dfs_normalizado = normalizar_nombres(dfs)
-    df_unido = unir_df(dfs_normalizado)
-    
+    df_unido = unir_df(dfs)
+
     #Hacer plot de los hoteles y donde aparecen repetidos
     #Coincidencias en las 3 webs
-    plt.figure()
     barras_2_webs = hacer_plot_freq(df_unido, "bar")
-    plt.figure()
     pie_3_webs = hacer_plot_freq(df_unido)
-    
-    
-    
     
     
     
