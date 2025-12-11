@@ -98,3 +98,166 @@ df_limpio.loc[mask_edreams, "puntuacion_num"] = df_limpio.loc[mask_edreams, "pun
 print("Corrección aplicada a Edreams y comprobacion con uevas estadísticas:")
 print(df_limpio.groupby("web")["puntuacion_num"].describe()[["min", "max", "mean"]])
 print("-----------------------------------------------")
+
+
+#como he visto que edreams hay hoteles que le inflan un poco la meida, y ademas que podria ser posible que se repitan en el top
+#he hecho que si los hoteles coinciden, haga una media d elas 3 valoraciones y de eso como resultado para comparar 
+
+# Si un hotel sale en varias webs  media de sus notas
+df_unicos = df_limpio.groupby(["Nombre", "ciudad", "tipo_alojamiento"])["puntuacion_num"].mean().reset_index()
+
+df_unicos = df_unicos.sort_values("puntuacion_num", ascending=False)
+
+#graficas de comparacion de los mejores hoteles  de cada ciudad
+
+# ibiza
+ibiza_data = df_unicos[df_unicos["ciudad"] == "Ibiza"] 
+
+# ordenar mayor a menor
+top_ibiza = ibiza_data.sort_values("puntuacion_num", ascending=False).head(10)
+
+plt.figure(figsize=(10, 6))
+plt.barh(top_ibiza["Nombre"], top_ibiza["puntuacion_num"], color='green')
+plt.title("Top 10 Hoteles Mejor Valorados de Ibiza ")
+plt.xlabel("Valoración (0-10)")
+plt.xlim(0, 10)
+plt.gca().invert_yaxis()
+plt.show()
+
+
+#sevilla
+sevilla_data = df_unicos[df_unicos["ciudad"] == "Sevilla"] 
+
+top_sevilla = sevilla_data.sort_values("puntuacion_num", ascending=False).head(10)
+
+plt.figure(figsize=(10, 6))
+plt.barh(top_sevilla["Nombre"], top_sevilla["puntuacion_num"], color='green')
+plt.title("Top 10 Hoteles Mejor Valorados de Sevilla ")
+plt.xlabel("Valoración (0-10)")
+plt.xlim(0, 10)
+plt.gca().invert_yaxis()
+plt.show()
+
+
+# zaRagoza
+zaragoza_data = df_unicos[df_unicos["ciudad"] == "Zaragoza"] 
+
+top_zaragoza = zaragoza_data.sort_values("puntuacion_num", ascending=False).head(10)
+
+plt.figure(figsize=(10, 6))
+plt.barh(top_zaragoza["Nombre"], top_zaragoza["puntuacion_num"], color='green') 
+plt.title("Top 10 Hoteles Mejor Valorados de Zaragoza ")
+plt.xlabel("Valoración (0-10)")
+plt.xlim(0, 10)
+plt.gca().invert_yaxis()
+plt.show()
+
+
+#lo mismo, pero con los peores
+
+# ibz peores
+ibiza_data = df_unicos[df_unicos["ciudad"] == "Ibiza"]
+
+# Ode menor a mayor
+peor_ibiza = ibiza_data.sort_values("puntuacion_num", ascending=True).head(10)
+
+plt.figure(figsize=(10, 6))
+plt.barh(peor_ibiza["Nombre"], peor_ibiza["puntuacion_num"], color='salmon') 
+plt.title("Top 10 Hoteles PEOR Valorados de Ibiza ")
+plt.xlabel("Valoración (0-10)")
+plt.xlim(0, 10)
+plt.gca().invert_yaxis() # que el peor de todos vaya aririba
+plt.show()
+
+
+# sev peores
+sevilla_data = df_unicos[df_unicos["ciudad"] == "Sevilla"]
+
+peor_sevilla = sevilla_data.sort_values("puntuacion_num", ascending=True).head(10)
+
+plt.figure(figsize=(10, 6))
+plt.barh(peor_sevilla["Nombre"], peor_sevilla["puntuacion_num"], color='salmon') 
+plt.title("Top 10 Hoteles PEOR Valorados de Sevilla")
+plt.xlabel("Valoración (0-10)")
+plt.xlim(0, 10)
+plt.gca().invert_yaxis() 
+plt.show()
+
+
+# zar peores
+zaragoza_data = df_unicos[df_unicos["ciudad"] == "Zaragoza"]
+
+peor_zaragoza = zaragoza_data.sort_values("puntuacion_num", ascending=True).head(10)
+
+plt.figure(figsize=(10, 6))
+plt.barh(peor_zaragoza["Nombre"], peor_zaragoza["puntuacion_num"], color='salmon')
+plt.title("Top 10 Hoteles PEOR Valorados de Zaragoza")
+plt.xlabel("Valoración (0-10)")
+plt.xlim(0, 10)
+plt.gca().invert_yaxis()
+plt.show()
+
+#que web tiene los hoteles mejor valorados de media 
+
+ranking_webs = df_limpio.groupby("web")["puntuacion_num"].mean().sort_values(ascending=False)
+
+plt.figure(figsize=(8, 5))
+ranking_webs.plot(kind="bar", color="blue", edgecolor="black")
+plt.title("Nota Media Global por Web")
+plt.ylim(0, 10)
+plt.ylabel("Puntuación Media")
+plt.xticks(rotation=0)
+plt.show()
+
+#que ciudad tiene mejores hoteles con mejores valoraciones 
+ranking_ciudades = df_unicos.groupby("ciudad")["puntuacion_num"].mean().sort_values(ascending=False)
+
+plt.figure(figsize=(8, 5))
+ranking_ciudades.plot(kind="bar", color="orange", edgecolor="black")
+plt.title("Nota Media Global por Ciudad (Basado en Hoteles Únicos)")
+plt.ylim(0, 10)
+plt.ylabel("Puntuación Media")
+plt.xticks(rotation=0)
+plt.show()
+
+
+#comparacion con estrellas
+#cada web cuantos hoteles dispone de cada tipo (con tipo me refiero a que un tipo seria de dos estrellas, otro tipo de 3 etc) para saber en que web buscar un tipo de hotel concereto: quiero buscar un hotel de 4 estrellas? mejor ir a esta pagina q tiene mas opicones
+
+
+# filtrar para quitar 0 estrellas
+df_estrellas = df_limpio[df_limpio["estrellas_num"] > 0]
+
+# afrupar y contar
+conteo_estrellas = df_estrellas.groupby(["estrellas_num", "web"]).size().unstack(fill_value=0)
+
+conteo_estrellas.plot(kind="barh", figsize=(12, 8), width=0.8, edgecolor='black')
+
+plt.title("Cantidad de oferta hotelera según Estrellas y Web")
+plt.xlabel("Número de Hoteles disponibles")
+plt.ylabel("Categoría (Estrellas)")
+plt.legend(title="Web") #la leyenda
+plt.grid(axis='x', linestyle='--', alpha=0.3) # rejilla vertical para medir mejor
+
+plt.show()
+
+# para ver num exactos
+print("num exacto ")
+print(conteo_estrellas)
+
+
+#que ciudad tiene hoteles de mas calidad (teniendo en cuenta como calidad las estrellas)
+
+
+ranking_estrellas = df_limpio.groupby("ciudad")["estrellas_num"].mean().sort_values(ascending=False)
+
+plt.figure(figsize=(8, 6))
+ranking_estrellas.plot(kind="bar", color="gold", edgecolor="black")
+plt.title("Ranking de ciudades por Calidad")
+plt.ylabel("Media de Estrellas")
+plt.ylim(0, 5) # estrellas de 0 a 5
+plt.xticks(rotation=0) # nombres rectos
+plt.show()
+
+
+#ranking combinado de estresllas y nota
