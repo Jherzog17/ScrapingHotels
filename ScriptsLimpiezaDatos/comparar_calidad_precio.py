@@ -100,6 +100,20 @@ def graf_dispersion_precio_puntuacion(df):
         plt.ylabel("Puntuación")
         plt.legend()
 
+def graf_media_ciudad(df):
+    """
+    Gráfico de barras con la calidad_precio media por ciudad.
+    """
+    media = df.groupby("ciudad")["calidad_precio"].mean().sort_values(ascending=False)
+    media.plot(
+        kind="bar",
+        rot=0,
+        title="Calidad-precio media por ciudad",
+        xlabel="Ciudad",
+        ylabel="Puntuacion/precio"
+    )
+
+
 
 if __name__ == "__main__":
     df_limpio = df_limpiar(df)
@@ -116,6 +130,10 @@ if __name__ == "__main__":
 
 
     graf_dispersion_precio_puntuacion(df_chollos)
+
+    plt.figure()
+    graf_media_ciudad(df_limpio)
+
     plt.show()
 
 print(df["web"])
