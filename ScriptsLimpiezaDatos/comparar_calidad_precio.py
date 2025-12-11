@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 carpeta_root = Path(__file__).resolve().parent.parent
 
 #cargamos todos los csv
-path=carpeta_root/"Datos/crudo"
+path=carpeta_root/"Datos/Crudo"
 web_ciu=[("Amimir",  "Ibiza"),("Amimir",  "Sevilla"),("Amimir",  "Zaragoza"),
     ("Booking", "Ibiza"),("Booking", "Sevilla"),("Booking", "Zaragoza"),
     ("Edreams", "Ibiza"),("Edreams", "Sevilla"),("Edreams", "Zaragoza")]
@@ -35,6 +35,16 @@ def limpiar_puntuacion(x):
     return float(numero)
 
 
+def limpiar_estrellas(x:str):
+    x = str(x)
+    if "estrellas" in x:
+        estrellas = x.split("estrellas")[0]
+    else:
+        estrellas = x
+    estrellas = estrellas.strip()
+    estrellas = int(estrellas)
+    return estrellas
+
 def df_limpiar(df):
     """
     -
@@ -52,11 +62,12 @@ def df_limpiar(df):
     df["puntuaciont"] = df["Puntuación"].fillna(df["Puntuacion"])
     df["puntuacion_num"] = df["puntuaciont"].map(limpiar_puntuacion)
     df["precio_num"] = df["Precio"].map(limpiar_puntuacion)
-
+    df["Estrellas_limp"] = df["Estrellas"].apply(limpiar_estrellas)
+    
     df["calidad_precio"] = df["puntuacion_num"] / df["precio_num"]
+    df["calidad_precio_estrellas"] = df["Estrellas_limp"] / df["precio_num"]
     df_limpio = df.dropna(subset=["puntuacion_num", "precio_num"]).copy()
-    df_limpio=df_limpio[["Nombre", "web", "ciudad", "puntuacion_num", "precio_num", "calidad_precio"]]
-
+    df_limpio=df_limpio[["Nombre", "web", "ciudad", "puntuacion_num", "precio_num", "calidad_precio", "calidad_precio_estrellas"]]
     return df_limpio
 
 def marcar_chollo(df):
