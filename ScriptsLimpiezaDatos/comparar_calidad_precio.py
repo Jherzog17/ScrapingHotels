@@ -36,14 +36,13 @@ def limpiar_puntuacion(x):
 
 
 def limpiar_estrellas(x:str):
-    x = str(x)
-    if "estrellas" in x:
-        estrellas = x.split("estrellas")[0]
-    else:
-        estrellas = x
-    estrellas = estrellas.strip()
-    estrellas = int(estrellas)
-    return estrellas
+    if pd.isna(x):
+        return np.nan
+    texto = str(x).lower()
+    m = re.search(r"\d+", texto)
+    if not m:
+        return np.nan
+    return int(m.group(0))
 
 def df_limpiar(df):
     """
@@ -56,18 +55,18 @@ def df_limpiar(df):
     precio y calidad precio, para poder ahroa visualizar lo que nos interesa
     """
     df=df.copy()
-    filtro = df["web"] == "Edreams"
-    df.loc[filtro, "Puntuacion"] = df.loc[filtro, "Puntuacion"] * 2
 
     df["puntuaciont"] = df["Puntuación"].fillna(df["Puntuacion"])
     df["puntuacion_num"] = df["puntuaciont"].map(limpiar_puntuacion)
+    df.loc[df["web"] == "Edreams", "puntuacion_num"] = df.loc[df["web"] == "Edreams", "puntuacion_num"] * 2
     df["precio_num"] = df["Precio"].map(limpiar_puntuacion)
     df["Estrellas_limp"] = df["Estrellas"].apply(limpiar_estrellas)
     
     df["calidad_precio"] = df["puntuacion_num"] / df["precio_num"]
     df["calidad_precio_estrellas"] = df["Estrellas_limp"] / df["precio_num"]
-    df_limpio = df.dropna(subset=["puntuacion_num", "precio_num"]).copy()
-    df_limpio=df_limpio[["Nombre", "web", "ciudad", "puntuacion_num", "precio_num", "calidad_precio", "calidad_precio_estrellas"]]
+    df_limpio = df.dropna(subset=["puntuacion_num", "precio_num", "Estrellas_limp"]).copy()
+    df_limpio = df_limpio[df_limpio["precio_num"] > 0]
+    df_limpio=df_limpio[["Nombre", "web", "ciudad", "Estrellas_limp", "puntuacion_num", "precio_num", "calidad_precio", "calidad_precio_estrellas"]]
     return df_limpio
 
 def marcar_chollo(df):
@@ -79,7 +78,11 @@ def marcar_chollo(df):
     limite=df.groupby("web")["calidad_precio"].quantile(0.75)
     df["lim_web"]=df["web"].map(limite)
     df["es_chollo"]=df["calidad_precio"]>=df["lim_web"]
-    df=df.drop(columns=["lim_web"])
+
+    limite2 = df.groupby(["web", "Estrellas_limp"])["calidad_precio_estrellas"].quantile(0.75)
+    df["lim_web2"] = df.set_index(["web", "Estrellas_limp"]).index.map(limite2)
+    df["es_chollo2"] = df["calidad_precio_estrellas"] >= df["lim_web2"]
+    df=df.drop(columns=["lim_web", "lim_web2"])
     return df
 
 def graf_media_web(df):
@@ -89,22 +92,33 @@ def graf_media_web(df):
     media=(df.groupby("web")["calidad_precio"].mean().sort_values(ascending=False))
     media.plot(kind="bar", rot=0, title="Calidad-precio media por web", xlabel="Web", ylabel="Puntuacion/precio")
 
+def graf_media_web2(df):
+    """
+    Grafico de barras con la calidad_precio media por web
+    """
+    media=(df.groupby("web")["calidad_precio_estrellas"].mean().sort_values(ascending=False))
+    media.plot(kind="bar", rot=0, title="Calidad-precio-estrellas media por web", xlabel="Web", ylabel="Estrellas/precio")
+
 def graf_dispersion_precio_puntuacion(df):
     """
     Gráficos de dispersión para ver la relación entre precio y puntuación
     en cada web, coloreando por ciudad.
     """
-    webs = df["web"].unique()
+    color_map = {"Ibiza": "red", "Sevilla": "blue", "Zaragoza": "black"}
 
-    for web in webs:
-        df_web = df[df["web"] == web]
-
+    for web, df_web in df.groupby("web"):
         plt.figure()
-        ciudades = df_web["ciudad"].unique()
+        ax = plt.gca()
 
-        for ciudad in ciudades:
-            df_wc = df_web[df_web["ciudad"] == ciudad]
-            plt.scatter(df_wc["precio_num"], df_wc["puntuacion_num"], label=ciudad)
+        for ciudad, group in df_web.groupby("ciudad"):
+            group.plot(
+                kind="scatter",
+                x="precio_num",
+                y="puntuacion_num",
+                ax=ax,
+                label=ciudad,
+                color=color_map.get(ciudad, "black")
+            )
 
         plt.title("Relación precio–puntuación en " + web)
         plt.xlabel("Precio")
@@ -138,6 +152,8 @@ if __name__ == "__main__":
 
     plt.figure()
     graf_media_web(df_chollos)
+    plt.figure()
+    graf_media_web2(df_chollos)
 
 
     graf_dispersion_precio_puntuacion(df_chollos)
@@ -147,4 +163,3 @@ if __name__ == "__main__":
 
     plt.show()
 
-print(df["web"])
