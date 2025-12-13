@@ -52,6 +52,7 @@ def seleccionarLugar(driver, lugar):
     Función que escribe en el buscador de Maps un lugar
     '''
     try:
+        time.sleep(0.5)
         input_buscador = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, ":rh:")))
         input_buscador.send_keys(lugar)#Introduce el texto en el buscador
         print("Búsqueda de lugar realizada con éxito")
@@ -116,6 +117,13 @@ def buscar(driver):
         return driver
     except Exception as e:
         print(f"Error al darle a buscar {e}")
+
+def quitar_pop_up_login(driver):
+    try:
+        btn_cerrar = WebDriverWait(driver,2).until(EC.element_to_be_clickable((By.XPATH, '//button[@aria-label="Ignorar información sobre el inicio de sesión."]')))
+        btn_cerrar.click()
+    except:
+        pass
 
 def cargar_mas_resultados(driver):
     """
@@ -239,6 +247,7 @@ def ejecutar_script_booking(lugar, nom_csv):
     seleccionarFechas(driver)
     seleccionarViajeros(driver)
     buscar(driver)
+    quitar_pop_up_login(driver)
 
     soup = sacarHtmlEstático(driver)
 
