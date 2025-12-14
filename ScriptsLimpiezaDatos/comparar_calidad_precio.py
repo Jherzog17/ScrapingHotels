@@ -2,88 +2,164 @@ import pandas as pd
 import numpy as np
 import re
 from pathlib import Path
+import matplotlib.pyplot as plt
+
 
 carpeta_root = Path(__file__).resolve().parent.parent
 
 #cargamos todos los csv
-amimir_ibiza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Amimir_Ibiza.csv", sep=";", encoding="utf-8")
-amimir_sevilla=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Amimir_Sevilla.csv", sep=";", encoding="utf-8")
-amimir_zaragoza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Amimir_Zaragoza.csv", sep=";", encoding="utf-8")
+path=carpeta_root/"Datos/Crudo"
+web_ciu=[("Amimir",  "Ibiza"),("Amimir",  "Sevilla"),("Amimir",  "Zaragoza"),
+    ("Booking", "Ibiza"),("Booking", "Sevilla"),("Booking", "Zaragoza"),
+    ("Edreams", "Ibiza"),("Edreams", "Sevilla"),("Edreams", "Zaragoza")]
 
-booking_ibiza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Booking_Ibiza.csv", sep=";", encoding="utf-8")
-booking_sevilla=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Booking_Sevilla.csv", sep=";", encoding="utf-8")
-booking_zaragoza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Booking_Zaragoza.csv", sep=";", encoding="utf-8")
+df_1=[]
+for web, ciudad in web_ciu:
+    path_t=f"{path}/resultados_{web}_{ciudad}.csv"
+    df_temp=pd.read_csv(path_t, sep=";", encoding="utf-8")
+    df_temp["ciudad"]=ciudad
+    df_temp["web"]=web
+    df_1.append(df_temp)
+df=pd.concat(df_1, ignore_index=True)
 
-edreams_ibiza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Edreams_Ibiza.csv", sep=";", encoding="utf-8")
-edreams_sevilla=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Edreams_Sevilla.csv", sep=";", encoding="utf-8")
-edreams_zaragoza=pd.read_csv(carpeta_root / "Datos" / "Crudo" / "resultados_Edreams_Zaragoza.csv", sep=";", encoding="utf-8")
-
-#añadimos a tosos columnas con sus respectivas ciudades y webs, para al concatenar poder diferenciar
-amimir_ibiza["ciudad"]="Ibiza"
-amimir_ibiza["web"]="Amimir"
-amimir_sevilla["ciudad"]="Sevilla"
-amimir_sevilla["web"]="Amimir"
-amimir_zaragoza["ciudad"]="Zaragoza"
-amimir_zaragoza["web"]="Amimir"
-booking_ibiza["ciudad"]="Ibiza"
-booking_ibiza["web"]="Booking"
-booking_sevilla["ciudad"]="Sevilla"
-booking_sevilla["web"]="Booking"
-booking_zaragoza["ciudad"]="Zaragoza"
-booking_zaragoza["web"]="Booking"
-edreams_ibiza["ciudad"]="Ibiza"
-edreams_ibiza["web"]="Edreams"
-edreams_sevilla["ciudad"]="Sevilla"
-edreams_sevilla["web"]="Edreams"
-edreams_zaragoza["ciudad"]="Zaragoza"
-edreams_zaragoza["web"]="Edreams"
-df=pd.concat([amimir_ibiza, amimir_sevilla, amimir_zaragoza, booking_ibiza, booking_sevilla, booking_zaragoza, edreams_ibiza, edreams_sevilla, edreams_zaragoza], ignore_index=True)
-
-#unificamos las columnas puntuacion, puntuación
-df["puntuaciont"]=df["Puntuación"].fillna(df["Puntuacion"])
 #vamos a limpiar puntuacion y precio, porque se accede de la misma manera y queremos el mismo formato
 patr_punt=re.compile(r"\d+(?:[.,]\d+)?")
 def limpiar_puntuacion(x):
     if pd.isna(x):
-        return None
+        return np.nan
     texto=str(x).strip()
     m=patr_punt.search(texto)
     if not m:
-        raise ValueError(f"Puntuacion con formato diferente: {repr(texto)}")
-    numero=m.group(0)
-    numero=numero.replace(",", ".")
+        return np.nan
+    numero=m.group(0).replace(",", ".")
     return float(numero)
-df["puntuacion_num"]=df["puntuaciont"].apply(limpiar_puntuacion)
-df["precio_num"]=df["Precio"].apply(limpiar_puntuacion)
 
-#limpiar estrellas y llaves
-patr_entero=re.compile(r"\d+")
-def extraer_entero(x):
+
+def limpiar_estrellas(x:str):
     if pd.isna(x):
-        return None
-    texto=str(x)
-    m=patr_entero.search(texto)
+        return np.nan
+    texto = str(x).lower()
+    m = re.search(r"\d+", texto)
     if not m:
-        raise ValueError(f"Entero con formato diferente: {repr(texto)}")
+        return np.nan
     return int(m.group(0))
-df["estrellas_num"]=df["Estrellas"].apply(extraer_entero)
-if "Llaves" in df.columns:
-    df["llaves_num"]=df["Llaves"].apply(extraer_entero)
-else:
-    df["llaves_num"]=0
 
-#crear coluimna que separe si es hotel o apartamento
-df["tipo_alojamiento"]=np.where(df["llaves_num"].fillna(0)>0, "Apartamento", "Hotel")
+def df_limpiar(df):
+    """
+    -
+    -Unifica columnas de Puntuación y Puntuacion en puntuaciont
+    -Pasar las columnas de puntuacion y precio a formato exclusivamente númerico
+    -crea la columna con la relacion calidad precio
+    -borra las filas donde puntuacion o precio sea nan
+    -guardamos en df_limpio las columnas nombre, web, ciudad, puntuacion,
+    precio y calidad precio, para poder ahroa visualizar lo que nos interesa
+    """
+    df=df.copy()
 
-print(df[["Nombre", "Precio", "precio_num", "puntuaciont", "puntuacion_num", "Estrellas", "estrellas_num", "Llaves", "llaves_num"]].head(15))
-print(df[["Nombre", "llaves_num", "tipo_alojamiento"]].head(15))
+    df["puntuaciont"] = df["Puntuación"].fillna(df["Puntuacion"])
+    df["puntuacion_num"] = df["puntuaciont"].map(limpiar_puntuacion)
+    df.loc[df["web"] == "Edreams", "puntuacion_num"] = df.loc[df["web"] == "Edreams", "puntuacion_num"] * 2
+    df["precio_num"] = df["Precio"].map(limpiar_puntuacion)
+    df["Estrellas_limp"] = df["Estrellas"].apply(limpiar_estrellas)
+    
+    df["calidad_precio"] = df["puntuacion_num"] / df["precio_num"]
+    df["calidad_precio_estrellas"] = df["Estrellas_limp"] / df["precio_num"]
+    df_limpio = df.dropna(subset=["puntuacion_num", "precio_num", "Estrellas_limp"]).copy()
+    df_limpio = df_limpio[df_limpio["precio_num"] > 0]
+    df_limpio=df_limpio[["Nombre", "web", "ciudad", "Estrellas_limp", "puntuacion_num", "precio_num", "calidad_precio", "calidad_precio_estrellas"]]
+    return df_limpio
 
-#crear dataframe limpio
-df_limpio=df.dropna(subset=["precio_num", "puntuacion_num"]).copy()
-print("Filas originales:", len(df))
-print("Filas después de limpiar:", len(df_limpio))
+def marcar_chollo(df):
+    """
+    va a marcar en es_chollo los hoteles que estan por encima del cuantil 75
+    de calidad_precio dentro de cada web, top 25%
+    """
+    df=df.copy()
+    limite=df.groupby("web")["calidad_precio"].quantile(0.75)
+    df["lim_web"]=df["web"].map(limite)
+    df["es_chollo"]=df["calidad_precio"]>=df["lim_web"]
 
-#crear columna con la relacion calidad_precio
-df_limpio["calidad_precio"]=df_limpio["puntuacion_num"]/df_limpio["precio_num"]
-print(df_limpio[["Nombre", "precio_num", "puntuacion_num", "calidad_precio"]].head(15))
+    limite2 = df.groupby(["web", "Estrellas_limp"])["calidad_precio_estrellas"].quantile(0.75)
+    df["lim_web2"] = df.set_index(["web", "Estrellas_limp"]).index.map(limite2)
+    df["es_chollo2"] = df["calidad_precio_estrellas"] >= df["lim_web2"]
+    df=df.drop(columns=["lim_web", "lim_web2"])
+    return df
+
+def graf_media_web(df):
+    """
+    Grafico de barras con la calidad_precio media por web
+    """
+    media=(df.groupby("web")["calidad_precio"].mean().sort_values(ascending=False))
+    media.plot(kind="bar", rot=0, title="Calidad-precio media por web", xlabel="Web", ylabel="Puntuacion/precio")
+
+def graf_media_web2(df):
+    """
+    Grafico de barras con la calidad_precio media por web
+    """
+    media=(df.groupby("web")["calidad_precio_estrellas"].mean().sort_values(ascending=False))
+    media.plot(kind="bar", rot=0, title="Calidad-precio-estrellas media por web", xlabel="Web", ylabel="Estrellas/precio")
+
+def graf_dispersion_precio_puntuacion(df):
+    """
+    Gráficos de dispersión para ver la relación entre precio y puntuación
+    en cada web, coloreando por ciudad.
+    """
+    color_map = {"Ibiza": "red", "Sevilla": "blue", "Zaragoza": "black"}
+
+    for web, df_web in df.groupby("web"):
+        plt.figure()
+        ax = plt.gca()
+
+        for ciudad, group in df_web.groupby("ciudad"):
+            group.plot(
+                kind="scatter",
+                x="precio_num",
+                y="puntuacion_num",
+                ax=ax,
+                label=ciudad,
+                color=color_map.get(ciudad, "black")
+            )
+
+        plt.title("Relación precio–puntuación en " + web)
+        plt.xlabel("Precio")
+        plt.ylabel("Puntuación")
+        plt.legend()
+
+def graf_media_ciudad(df):
+    """
+    Gráfico de barras con la calidad_precio media por ciudad.
+    """
+    media = df.groupby("ciudad")["calidad_precio"].mean().sort_values(ascending=False)
+    media.plot(
+        kind="bar",
+        rot=0,
+        title="Calidad-precio media por ciudad",
+        xlabel="Ciudad",
+        ylabel="Puntuacion/precio"
+    )
+
+
+
+if __name__ == "__main__":
+    df_limpio = df_limpiar(df)
+    df_chollos = marcar_chollo(df_limpio)
+
+    print("Ejemplo de df_limpio:")
+    print(df_limpio.head())
+
+    print("\nEjemplo de df_chollos:")
+    print(df_chollos.head())
+
+    plt.figure()
+    graf_media_web(df_chollos)
+    plt.figure()
+    graf_media_web2(df_chollos)
+
+
+    graf_dispersion_precio_puntuacion(df_chollos)
+
+    plt.figure()
+    graf_media_ciudad(df_limpio)
+
+    plt.show()
 

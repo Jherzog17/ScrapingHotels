@@ -59,47 +59,51 @@ if __name__ == "__main__":
     df_limpio=df_limpiar(df)
 
 
-    #precio medio de los hoteles por web
-    media_por_web = df_limpio.groupby('web')['precio_num'].mean().sort_values()
-    plt.figure(figsize=(8, 5))
-    media_por_web.plot(kind='bar', rot=0)
+    #¿Qué web es más barata en términos generales?
+    media_por_web = df_limpio.groupby('web')['precio_num'].mean().sort_values() #agrupo por web, caluclo el precio medio y ordeno (barato->caro)
+    plt.figure(figsize=(8, 5)) #fijo ese tamaño para ver bien las etiquetas
+    media_por_web.plot(kind='bar', rot=0) #pongo rot=0 para que no se giren las etiquetas
     plt.title("Precio medio por web")
     plt.ylabel("Precio medio (€)")
     plt.xlabel("Web")
     plt.show()
 
-    #2
+    #2¿Qué web es más barata dependiendo de la zona?
     media_web_ciudad = (df_limpio.groupby(['ciudad', 'web'])['precio_num'].mean().reset_index())
-    tabla_pivot = media_web_ciudad.pivot(index='ciudad', columns='web', values='precio_num')
-
+    tabla_pivot = media_web_ciudad.pivot(index='ciudad', columns='web', values='precio_num') #con pivot consigo una tabla en la que las columnas son las webs y las filas son las ciudades, así el valor que sale en cada casilla es el precio medio directamente
     plt.figure(figsize=(10, 6))
-    tabla_pivot.plot(kind='bar', rot=0, ax=plt.gca())
+    tabla_pivot.plot(kind='bar', rot=0, ax=plt.gca()) #ax=plt.gca() hace que no se cree otra figura
     plt.title("Precio medio por web en cada ciudad")
     plt.ylabel("Precio medio (€)")
     plt.xlabel("Ciudad")
     plt.show()
-    #3 distribucion de precios
+
+    #3 ¿Cómo se distribuye el precio en todas las webs?
     plt.figure(figsize=(8, 5))
-
-    # 2. Trazado del histograma (Integración con Pandas, Referencia: Page 14)
-    # Usamos directamente la Serie 'precio_num'
-    df_limpio['precio_num'].plot(kind='hist', bins=20)
-
-    # 3. Configuración de etiquetas y título (Referencia: Page 5)
+    df_limpio['precio_num'].plot(kind='hist', bins=20) #bins=20 divide el rango de los precio en 20 intervalos , así tiene más detalle el histograma
     plt.title("Distribución de precios de los hoteles")
     plt.xlabel("Precio (€)")
     plt.ylabel("Frecuencia") # Etiqueta estándar para un histograma
     plt.show()
 
-    #3.1 distribución de precios para cada web
-    webs_unicas = df_limpio['web'].unique()
+    #3.1 ¿Y en cada web?
+    webs_unicas = df_limpio['web'].unique() #he puesto unique() para así sacar un array con los nombres de las webs, poder recorrer cada web y entonces hacer el histograma
+    #he preferido usar unique() en vez de poner for web in ["Amimir","Booking","Edreams"] para que así el código se adapte si añado o elimino alguna web
     for web in webs_unicas:
-        subset = df_limpio[df_limpio['web'] == web]
+        subset = df_limpio[df_limpio['web'] == web] #filtro por web
         plt.figure(figsize=(8, 5))
         subset['precio_num'].plot(kind='hist', bins=20)
-        plt.title(f"Distribución de precios - {web}")
+        plt.title(f"Distribución de precios - {web}") #pongo {web} para que se adapte a la web de ña que sea el histograma
         plt.xlabel("Precio (€)")
         plt.ylabel("Frecuencia")
         plt.show()
 
-
+    #¿Cuáles son los 10 hoteles más caros?
+    top_hoteles_mas_caros = df_limpio.sort_values('precio_num', ascending=False).head(10) #head(10) para que después de ordenarlos ascendentemente, coja los 10 más caros
+    plt.figure(figsize=(8, 6))
+    top_hoteles_mas_caros.plot(kind='barh', x='Nombre', y='precio_num', ax=plt.gca(), legend=False)
+    plt.title("Top 10 hoteles más caros")
+    plt.xlabel("Precio (€)")
+    plt.xlim(800, 1000) #ajusto así el eje x para ver con más claridad la diferencia de precio entre los 10"
+    plt.tight_layout() #evita que se corten las etiquetas de los nombres de los hoteles
+    plt.show()
