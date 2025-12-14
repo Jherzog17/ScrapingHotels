@@ -23,14 +23,18 @@ for web, ciudad in web_ciu:
 df=pd.concat(df_1, ignore_index=True)
 
 #vamos a limpiar puntuacion y precio, porque se accede de la misma manera y queremos el mismo formato
+#patrón para decimales ya seas con coma o punto
 patr_punt=re.compile(r"\d+(?:[.,]\d+)?")
 def limpiar_puntuacion(x):
     if pd.isna(x):
         return np.nan
+    #pasamos a string,por si tuviera otro tipo
     texto=str(x).strip()
+    #busco según la expresión regular
     m=patr_punt.search(texto)
     if not m:
         return np.nan
+    #convierto coma a punto
     numero=m.group(0).replace(",", ".")
     return float(numero)
 
@@ -38,7 +42,9 @@ def limpiar_puntuacion(x):
 def limpiar_estrellas(x:str):
     if pd.isna(x):
         return np.nan
+    #paso a minúsculas
     texto = str(x).lower()
+    #extraigo entero
     m = re.search(r"\d+", texto)
     if not m:
         return np.nan
@@ -53,11 +59,13 @@ def df_limpiar(df):
     -borra las filas donde puntuacion o precio sea nan
     -guardamos en df_limpio las columnas nombre, web, ciudad, puntuacion,
     precio y calidad precio, para poder ahroa visualizar lo que nos interesa
+    -mismo procedimiento que el anterior pero con estrellas
     """
     df=df.copy()
 
     df["puntuaciont"] = df["Puntuación"].fillna(df["Puntuacion"])
     df["puntuacion_num"] = df["puntuaciont"].map(limpiar_puntuacion)
+    #en Edreams la puntuación era sobre 5
     df.loc[df["web"] == "Edreams", "puntuacion_num"] = df.loc[df["web"] == "Edreams", "puntuacion_num"] * 2
     df["precio_num"] = df["Precio"].map(limpiar_puntuacion)
     df["Estrellas_limp"] = df["Estrellas"].apply(limpiar_estrellas)
@@ -94,7 +102,7 @@ def graf_media_web(df):
 
 def graf_media_web2(df):
     """
-    Grafico de barras con la calidad_precio media por web
+    Grafico de barras con la calidad_precio media por web, pero con estrellas en vez de puntuacion
     """
     media=(df.groupby("web")["calidad_precio_estrellas"].mean().sort_values(ascending=False))
     media.plot(kind="bar", rot=0, title="Calidad-precio-estrellas media por web", xlabel="Web", ylabel="Estrellas/precio")
@@ -125,20 +133,6 @@ def graf_dispersion_precio_puntuacion(df):
         plt.ylabel("Puntuación")
         plt.legend()
 
-def graf_media_ciudad(df):
-    """
-    Gráfico de barras con la calidad_precio media por ciudad.
-    """
-    media = df.groupby("ciudad")["calidad_precio"].mean().sort_values(ascending=False)
-    media.plot(
-        kind="bar",
-        rot=0,
-        title="Calidad-precio media por ciudad",
-        xlabel="Ciudad",
-        ylabel="Puntuacion/precio"
-    )
-
-
 
 if __name__ == "__main__":
     df_limpio = df_limpiar(df)
@@ -158,8 +152,6 @@ if __name__ == "__main__":
 
     graf_dispersion_precio_puntuacion(df_chollos)
 
-    plt.figure()
-    graf_media_ciudad(df_limpio)
 
     plt.show()
 
