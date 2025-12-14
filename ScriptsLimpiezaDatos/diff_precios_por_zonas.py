@@ -1,7 +1,12 @@
 import pandas as pd
 from pathlib import Path 
 import matplotlib.pyplot as plt
-from precio import limpiar_puntuacion
+import sys
+
+carpeta_root = Path(__file__).parent.parent
+sys.path.insert(0, str(carpeta_root))
+
+from ScriptsLimpiezaDatos.precio import limpiar_puntuacion
 
 directorio_root = Path(__file__).resolve().parent.parent
 
@@ -24,7 +29,7 @@ def leer_csv_zona_webs(zonas:list, webs:list):
             dfs[nombre_df] = pd.read_csv(ruta_csv, sep=';')
             dfs[nombre_df]["web"] = web
             dfs[nombre_df]["zona"] = zona
-            dfs[nombre_df].columns = dfs[nombre_df].columns.str.replace("ó", "o")
+            dfs[nombre_df].columns = dfs[nombre_df].columns.str.replace("ó", "o")#Unifica la columna de puntuacion
     return dfs
 
 def normalizar_nombres(dfs: dict):
@@ -97,6 +102,7 @@ def hacer_plot_freq(df, tipo_grafica="pie"):
     df_frecuencias = frecuencia.reset_index(name="count")
     df_frecuencias  = df_frecuencias.groupby("count").count()
     
+    #Este bucle sirve para en el titulo poner las webs, si son 2 que sea A y B y si son mas que se separen por comas
     webs=""
     for i in range(len(num_webs)):
         if len(num_webs) == 2:
@@ -137,24 +143,23 @@ def hacer_plot_freq(df, tipo_grafica="pie"):
 
 def plot_comparativa_webs(df):
     """
-    Crea un gráfico de barras horizontales comparando precios de hoteles entre webs.
-    Solo muestra hoteles que aparecen en TODAS las webs del DataFrame.
-    
-    Parámetros:
-    - df: DataFrame con columnas 'Nombre_norm', 'Precio', y 'web'
+    Crea un gráfico de barras horizontales donde salen los precios del mismo hotel en 
+    las distintas webs para asi poder ver donde está más barato un hotel.
     """
-    num_webs: list = list(df['web'].unique())
-    df_filtrado = df.groupby("Nombre_norm", as_index=False).filter(lambda x: len(x) == len(num_webs))
+    num_webs: list = list(df['web'].unique())#Lista con los nombres de las webs, es decir, por ejemplo ["Amimir", "Booking", "Edreams"]
+    df_filtrado = df.groupby("Nombre_norm", as_index=False).filter(lambda x: len(x) == len(num_webs))#Me quedo con las filas del dataframe que al agruparlas sean igual que len(num webs), es decir, que si he puesto 3 webs, me quedo con los que aparezcan en las 3 webs
     
-    nombre_columnas = df_filtrado.groupby("Nombre_norm")["Nombre"].first()
-    zona = list(df_filtrado["zona"].unique())[0]
+    nombre_columnas = df_filtrado.groupby("Nombre_norm")["Nombre"].first()#Al agruparlo, cada uno tiene un nombre distinto, bueno pues nostros nos quedamos con la primera de ella. Esto va a servir para a la hora de hacer el grafico que quede todo mas visual y bonito y no el nombre normalizado feo
+    zona = list(df_filtrado["zona"].unique())[0]#Como se compara siempre de una única zona me quedo con el string que corresponde al nombre de esa zona
     
-    df_reducido = df_filtrado.pivot_table(index='Nombre_norm', columns='web', values='Precio', aggfunc='first')
-    df_reducido.index = df_reducido.index.map(nombre_columnas)
+    df_reducido = df_filtrado.pivot_table(index='Nombre_norm', columns='web', values='Precio', aggfunc='first')#Creo un dataframe donde los indices sean los hoteles, las columnas las web y los valores el precio. Esto nos sirve para a la hora de hacer la gráfica que salga de forma inmdiata
+    df_reducido.index = df_reducido.index.map(nombre_columnas)#Cambio los indices por los nombres obtenidos anteriormente
     
+    #Como hay webs donde hay muchas coincidencias, para que el plot no se vea feo e ilegible solo muestro los 15 primeros
     if len(df_reducido) > 15:
         df_reducido = df_reducido.iloc[:15]
     
+    #Crear el gráfico
     df_reducido.plot(kind="barh")
     plt.xlabel('Precio (€)')
     plt.ylabel('')

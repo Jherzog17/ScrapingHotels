@@ -3,12 +3,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def dividir_apartamento_hotel_etc(df):
-    
+    """
+    Esta función, crea una columna nueva en el que dependiendo del nombre del alojamiento lo clasifica según convenga,
+    si no es capaz de clasificarlo, lo pone como nan y luego lo quita
+    """
     df["Tipo_alojamiento"] = df["Nombre"].apply(clasificar_alojamiento)
-    df_sin_na = df.dropna(subset=["Tipo_alojamiento"])
+    df_sin_na = df.dropna(subset=["Tipo_alojamiento"])#Quitar los na si hay
     return df_sin_na
     
 def clasificar_alojamiento(nombre):
+    """
+    Función que dado un string, clasifica dicho string en un tipo de alojamiento u otro. Si no es capaz de clasificarlo,
+    lo clasifica con nan.
+    """
     res = ""
     nombre_minusc = str(nombre).lower()
     
@@ -28,6 +35,9 @@ def clasificar_alojamiento(nombre):
     
 
 def hacer_plot_freq_tipo_aloj(df):
+    """
+    Función que crea un plot de tipo tarta donde aparece la distribución de los tipos de alojamientos
+    """
     df_grupos = df.groupby("Tipo_alojamiento").count()
     grafica = df_grupos["Nombre"].plot(kind="pie", autopct= lambda p : "{:.1f}%".format(p), labels=None,
                                     title="Distribución de tipos de alojamiento")
@@ -40,4 +50,4 @@ if __name__ == "__main__":
     dfs = leer_csv_zona_webs(["Sevilla"], ["Amimir", "Booking", "Edreams"])
     df_unido = unir_df(dfs)
     df_divido_tipos = dividir_apartamento_hotel_etc(df_unido)
-    hola = hacer_plot_freq_tipo_aloj(df_divido_tipos)
+    hacer_plot_freq_tipo_aloj(df_divido_tipos)
