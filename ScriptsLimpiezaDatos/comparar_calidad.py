@@ -76,28 +76,22 @@ else:
 #crear coluimna que separe si es hotel o apartamento
 df["tipo_alojamiento"]=np.where(df["llaves_num"].fillna(0)>0, "Apartamento", "Hotel")
 
-print(df[["Nombre", "Precio", "puntuaciont", "puntuacion_num", "Estrellas", "estrellas_num", "Llaves", "llaves_num"]].head(15))
-print(df[["Nombre", "llaves_num", "tipo_alojamiento"]].head(15))
+
 
 #crear dataframe limpio
 df_limpio=df.dropna(subset=["puntuacion_num"]).copy()
-print("Filas originales:", len(df))
-print("Filas después de limpiar:", len(df_limpio))
 #para comprobar el error que comento de las puntuaciones sobre 5
 
 print("\comprobar escalas (0-5 vs 0-10)")
 resumen_escalas = df_limpio.groupby("web")["puntuacion_num"].describe()[["min", "max", "mean"]]
 print(resumen_escalas)
-print("-----------------------------------------------\n")
+
 
 #en efecto edreams sigue la escala osbre 5 asi que hay que cambiarlo 
 
 mask_edreams = df_limpio["web"] == "Edreams"
 df_limpio.loc[mask_edreams, "puntuacion_num"] = df_limpio.loc[mask_edreams, "puntuacion_num"] * 2
 
-print("Corrección aplicada a Edreams y comprobacion con uevas estadísticas:")
-print(df_limpio.groupby("web")["puntuacion_num"].describe()[["min", "max", "mean"]])
-print("-----------------------------------------------")
 
 
 #como he visto que edreams hay hoteles que le inflan un poco la meida, y ademas que podria ser posible que se repitan en el top
@@ -105,55 +99,53 @@ print("-----------------------------------------------")
 
 # Si un hotel sale en varias webs  media de sus notas
 df_unicos = df_limpio.groupby(["Nombre", "ciudad", "tipo_alojamiento"])["puntuacion_num"].mean().reset_index()
-
 df_unicos = df_unicos.sort_values("puntuacion_num", ascending=False)
 
 #graficas de comparacion de los mejores hoteles  de cada ciudad
+#guarda puntuacion y estrellas
+df_unicos = df_limpio.groupby(["Nombre", "ciudad", "tipo_alojamiento"])[["puntuacion_num", "estrellas_num"]].mean().reset_index()
 
-# ibiza
-ibiza_data = df_unicos[df_unicos["ciudad"] == "Ibiza"] 
+# nota total teniendo en cuenta estrellas y valoraxion.
+df_unicos["nota_combinada"] = df_unicos["puntuacion_num"] + (df_unicos["estrellas_num"] * 2)
 
-# ordenar mayor a menor
-top_ibiza = ibiza_data.sort_values("puntuacion_num", ascending=False).head(10)
+#ibz
+ibiza_data = df_unicos[df_unicos["ciudad"] == "Ibiza"]
+# ordenaos por la nueva nota combinada
+top_ibiza = ibiza_data.sort_values("nota_combinada", ascending=False).head(10)
 
 plt.figure(figsize=(10, 6))
-plt.barh(top_ibiza["Nombre"], top_ibiza["puntuacion_num"], color='green')
-plt.title("Top 10 Hoteles Mejor Valorados de Ibiza ")
-plt.xlabel("Valoración (0-10)")
-plt.xlim(0, 10)
+plt.barh(top_ibiza["Nombre"], top_ibiza["nota_combinada"], color='gold', edgecolor='orange')
+plt.title("Top 10 hoteles (Estrellas + Valoracion)")
+plt.xlabel("Puntuación Combinada (Máx 20)")
+plt.xlim(0, 20) #lim en 20
 plt.gca().invert_yaxis()
 plt.show()
 
-
-#sevilla
-sevilla_data = df_unicos[df_unicos["ciudad"] == "Sevilla"] 
-
-top_sevilla = sevilla_data.sort_values("puntuacion_num", ascending=False).head(10)
+# sevilla
+sevilla_data = df_unicos[df_unicos["ciudad"] == "Sevilla"]
+top_sevilla = sevilla_data.sort_values("nota_combinada", ascending=False).head(10)
 
 plt.figure(figsize=(10, 6))
-plt.barh(top_sevilla["Nombre"], top_sevilla["puntuacion_num"], color='green')
-plt.title("Top 10 Hoteles Mejor Valorados de Sevilla ")
-plt.xlabel("Valoración (0-10)")
-plt.xlim(0, 10)
+plt.barh(top_sevilla["Nombre"], top_sevilla["nota_combinada"], color='gold', edgecolor='orange')
+plt.title("Top 10 hoteles de Sevilla (Estrelals + Valoración)")
+plt.xlabel("Puntuación Combinada (Máx 20)")
+plt.xlim(0, 20)
 plt.gca().invert_yaxis()
 plt.show()
 
-
-# zaRagoza
-zaragoza_data = df_unicos[df_unicos["ciudad"] == "Zaragoza"] 
-
-top_zaragoza = zaragoza_data.sort_values("puntuacion_num", ascending=False).head(10)
+# zaragoza
+zaragoza_data = df_unicos[df_unicos["ciudad"] == "Zaragoza"]
+top_zaragoza = zaragoza_data.sort_values("nota_combinada", ascending=False).head(10)
 
 plt.figure(figsize=(10, 6))
-plt.barh(top_zaragoza["Nombre"], top_zaragoza["puntuacion_num"], color='green') 
-plt.title("Top 10 Hoteles Mejor Valorados de Zaragoza ")
-plt.xlabel("Valoración (0-10)")
-plt.xlim(0, 10)
+plt.barh(top_zaragoza["Nombre"], top_zaragoza["nota_combinada"], color='gold', edgecolor='orange')
+plt.title("Top 10 hoteles Zaragoza (Estrelals + Valoració¡on)")
+plt.xlabel("Puntuación Combinada (Máx 20)")
+plt.xlim(0, 20)
 plt.gca().invert_yaxis()
 plt.show()
 
-
-#lo mismo, pero con los peores
+#ahora con los peores, pero teniendo solo en cuenta la valoracion 
 
 # ibz peores
 ibiza_data = df_unicos[df_unicos["ciudad"] == "Ibiza"]
@@ -163,7 +155,7 @@ peor_ibiza = ibiza_data.sort_values("puntuacion_num", ascending=True).head(10)
 
 plt.figure(figsize=(10, 6))
 plt.barh(peor_ibiza["Nombre"], peor_ibiza["puntuacion_num"], color='salmon') 
-plt.title("Top 10 Hoteles PEOR Valorados de Ibiza ")
+plt.title("Top 10 Hoteles peor valorados de Ibiza ")
 plt.xlabel("Valoración (0-10)")
 plt.xlim(0, 10)
 plt.gca().invert_yaxis() # que el peor de todos vaya aririba
@@ -177,7 +169,7 @@ peor_sevilla = sevilla_data.sort_values("puntuacion_num", ascending=True).head(1
 
 plt.figure(figsize=(10, 6))
 plt.barh(peor_sevilla["Nombre"], peor_sevilla["puntuacion_num"], color='salmon') 
-plt.title("Top 10 Hoteles PEOR Valorados de Sevilla")
+plt.title("Top 10 Hoteles peor valorados de Sevilla")
 plt.xlabel("Valoración (0-10)")
 plt.xlim(0, 10)
 plt.gca().invert_yaxis() 
@@ -191,7 +183,7 @@ peor_zaragoza = zaragoza_data.sort_values("puntuacion_num", ascending=True).head
 
 plt.figure(figsize=(10, 6))
 plt.barh(peor_zaragoza["Nombre"], peor_zaragoza["puntuacion_num"], color='salmon')
-plt.title("Top 10 Hoteles PEOR Valorados de Zaragoza")
+plt.title("Top 10 Hoteles peor valorados de Zaragoza")
 plt.xlabel("Valoración (0-10)")
 plt.xlim(0, 10)
 plt.gca().invert_yaxis()
@@ -205,7 +197,7 @@ plt.figure(figsize=(8, 5))
 ranking_webs.plot(kind="bar", color="blue", edgecolor="black")
 plt.title("Nota Media Global por Web")
 plt.ylim(0, 10)
-plt.ylabel("Puntuación Media")
+plt.ylabel("Media")
 plt.xticks(rotation=0)
 plt.show()
 
@@ -214,9 +206,9 @@ ranking_ciudades = df_unicos.groupby("ciudad")["puntuacion_num"].mean().sort_val
 
 plt.figure(figsize=(8, 5))
 ranking_ciudades.plot(kind="bar", color="orange", edgecolor="black")
-plt.title("Nota Media Global por Ciudad (Basado en Hoteles Únicos)")
+plt.title("Media  por Ciudad")
 plt.ylim(0, 10)
-plt.ylabel("Puntuación Media")
+plt.ylabel("Media")
 plt.xticks(rotation=0)
 plt.show()
 
@@ -233,9 +225,9 @@ conteo_estrellas = df_estrellas.groupby(["estrellas_num", "web"]).size().unstack
 
 conteo_estrellas.plot(kind="barh", figsize=(12, 8), width=0.8, edgecolor='black')
 
-plt.title("Cantidad de oferta hotelera según Estrellas y Web")
+plt.title("Numero de hoteles segun Estrellas y Web")
 plt.xlabel("Número de Hoteles disponibles")
-plt.ylabel("Categoría (Estrellas)")
+plt.ylabel("Estrellas")
 plt.legend(title="Web") #la leyenda
 plt.grid(axis='x', linestyle='--', alpha=0.3) # rejilla vertical para medir mejor
 
@@ -246,18 +238,31 @@ print("num exacto ")
 print(conteo_estrellas)
 
 
-#que ciudad tiene hoteles de mas calidad (teniendo en cuenta como calidad las estrellas)
+#que ciudad tiene hoteles de mas calidad objetiva (teniendo en cuenta como calidad las estrellas)
 
 
 ranking_estrellas = df_limpio.groupby("ciudad")["estrellas_num"].mean().sort_values(ascending=False)
 
 plt.figure(figsize=(8, 6))
 ranking_estrellas.plot(kind="bar", color="gold", edgecolor="black")
-plt.title("Ranking de ciudades por Calidad")
+plt.title("Media de calidad de cada ciudad")
 plt.ylabel("Media de Estrellas")
 plt.ylim(0, 5) # estrellas de 0 a 5
 plt.xticks(rotation=0) # nombres rectos
 plt.show()
 
+#ver quien cumple supuestamente lo que promete: hoteles que dan falsas espectativas (tienen muchas estrellas y buenas valoraciones) o por el contrario tienen pocas estrellas y buenas valoraciones es decir que estos datos se contradicen
 
-#ranking combinado de estresllas y nota
+
+datos_grafica = df_unicos[df_unicos["estrellas_num"] > 0]
+
+plt.figure(figsize=(10, 6))
+plt.scatter(datos_grafica["estrellas_num"], datos_grafica["puntuacion_num"], alpha=0.5, color='blue')
+plt.title("Expectativas (Estrellas) vs Realidad (Nota)")
+plt.xlabel("Estrellas Oficiales")
+plt.ylabel("Nota de Usuarios (0-10)")
+plt.grid(True, linestyle='--', alpha=0.3)
+
+plt.show()
+
+
