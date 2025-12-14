@@ -212,8 +212,9 @@ def sacarInfoHotel(soup):
         # todas empiezan igual pero luego tienen un numero por eso busco por lo que empieza no por el data testid como tal 
         hotel_data = [h for h in hotel_data if "e2e-accommodation-item-" in h["data-testid"]]
 
+        # recorrer cada bloque de info de hotel
         for hd in hotel_data:
-          
+            #sacar nombre 
             nodo_nom = hd.find("div", class_=["css-1kr9ao9", "e1hue9ey0"])
             h_nombre = nodo_nom.text if nodo_nom else "N/A"
 
@@ -232,22 +233,25 @@ def sacarInfoHotel(soup):
 
 
             try:
+                #buscar el precio normal 
                 nodo_price = hd.find("span", class_=["css-1vtqrtx", "e139ay0z0"])
                 if nodo_price:
                     h_price = nodo_price.text
                 else:
+                #si no encuentra el precio normal, provoca un error para ir al except
                     raise Exception
             except Exception:
+                #si valla precio normal busca el precio que no esta tachasdo
                 nodo_price= hd.find("div", attrs={"data-testid":"striked-price"})
                 if nodo_price:
                     h_price = nodo_price.text
                 else:
                     h_price = np.nan
-
+            #para sacar las estrellas
             cont_est = hd.find("div", class_=["css-1szo4kn", "e17fzqxg0"])
             h_estrellas = len(cont_est.find_all(class_=["css-lbmci7"])) if cont_est else 0
 
-        
+            #sacar direccion 
             nodo_dir = hd.find("div", class_=["css-9xspy4"])
             h_direccion = nodo_dir.text if nodo_dir else "N/A"
 
@@ -264,7 +268,7 @@ def sacarInfoHotel(soup):
         return []  
 
 
-
+#guardar datos en el csv
 def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos.csv'):
     cabeceras = ['Nombre', 'Puntuacion', 'Precio', 'Estrellas', 'Direccion']
     try:

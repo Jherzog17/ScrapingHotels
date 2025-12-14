@@ -204,7 +204,7 @@ def sacarInfoHoteles(soup):
             num_estrellas = len(cont_est.find_all(class_="e03979cfad")) if cont_est else 0
 
 
-    
+        #si esta todo bien, lo añade a la lista de resultados
             if nombre_hotel != "N/A":
                 linea = (
                     nombre_hotel + ";" +
@@ -221,7 +221,7 @@ def sacarInfoHoteles(soup):
         print(f"Fallo al conseguir la info de prueba {e}")
         return []
 
-
+#la funcion para guardar los datos en el csv con el formato que queremos
 def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos_booking.csv'):
     cabeceras = ['Nombre', 'Puntuación', 'Precio', 'Estrellas', 'Direccion']
     try:
@@ -233,7 +233,7 @@ def guardar_en_csv(datos_hoteles, nombre_archivo='hoteles_extraidos_booking.csv'
                 escritor.writerow(fila_lista)
 
         print(f"¡Datos guardados exitosamente en '{nombre_archivo}'!")
-
+#por si hay algun fallo que avise
     except IOError as e:
         print(f" Error al escribir el archivo CSV: {e}")
 
