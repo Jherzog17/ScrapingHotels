@@ -12,7 +12,6 @@ def iniciar_navegador():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--no-sandbox")
-    chrome_options.binary_location = "/usr/bin/chromium-browser"
 
     driver = webdriver.Chrome(options=chrome_options)
     driver.get("https://www.amimir.com/es/")

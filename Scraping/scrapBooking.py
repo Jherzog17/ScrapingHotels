@@ -19,7 +19,6 @@ def iniciarNavegador():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--no-sandbox")
-    chrome_options.binary_location = "/usr/bin/chromium-browser"
     driver = webdriver.Chrome(options=chrome_options)
     driver.get("https://www.booking.com")
     return driver
@@ -251,8 +250,10 @@ def ejecutar_script_booking(lugar, nom_csv):
 
     soup = sacarHtmlEstático(driver)
 
-    while cargar_mas_resultados(driver) :
+    i=0
+    while cargar_mas_resultados(driver) and i < 2:
         soup = sacarHtmlEstático(driver)
+        i += 1
 
 
     #Inicio del scraping estático
